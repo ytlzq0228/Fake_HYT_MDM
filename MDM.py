@@ -37,7 +37,9 @@ async def check_device_sn(request: Request):
         "Content-Length": str(len(body_str.encode("utf-8"))),
         "Connection": "keep-alive"
     }
-
+    # 打印响应
+    print("Response Headers:", headers)
+    print("Response Body:", body_str)
     return Response(content=body_str, headers=headers, media_type="application/json")
 
 
