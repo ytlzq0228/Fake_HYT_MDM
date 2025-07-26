@@ -86,7 +86,7 @@ async def chunked_data_array(request: Request):
 @app.post("/nrm/androidTask/getAndroidCommand")
 @app.post("/nrm/androidTask/uploadLocationInfo")
 async def chunked_data_null(request: Request):
-    await request.body()
+    body = await request.body()
     print("Body:", body.decode())
     return chunked_response({
         "code": "0",
