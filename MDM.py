@@ -93,6 +93,16 @@ async def chunked_data_null(request: Request):
         "data": None
     })
 
+@app.post("/nrm/androidTask/uploadLocationInfo")
+async def chunked_data_null(request: Request):
+    await request.body()
+    return chunked_response({
+        "code": "0",
+        "success": "true",
+        "msg": "",
+        "data": None
+    })
+
 
 @app.post("/{unknown:path}")
 async def fallback(request: Request, unknown: str):
