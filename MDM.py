@@ -62,7 +62,6 @@ async def check_device_sn(request: Request):
 @app.post("/nrm/androidTask/getDeviceInfoFromAndroid")
 @app.post("/nrm/androidTask/getAppInfoFromAndroid")
 @app.post("/nrm/androidUploadInfo/uploadContact")
-@app.post("/nrm/androidTask/getAndroidCommand")
 async def chunked_ok_empty_data(request: Request):
     await request.body()
     return chunked_response({
@@ -84,15 +83,7 @@ async def chunked_data_array(request: Request):
 
 
 @app.post("/nrm/androidUploadInfo/uploadWorkInterfaceInfo")
-async def chunked_data_null(request: Request):
-    await request.body()
-    return chunked_response({
-        "code": "0",
-        "success": "true",
-        "msg": "",
-        "data": None
-    })
-
+@app.post("/nrm/androidTask/getAndroidCommand")
 @app.post("/nrm/androidTask/uploadLocationInfo")
 async def chunked_data_null(request: Request):
     await request.body()
