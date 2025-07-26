@@ -50,7 +50,7 @@ async def check_device_sn(request: Request):
             "netDiskUrl": "http://192.168.31.221:8080/NetDiskWeb",
             "usageMode": "0",
             "mdmPort": "8083",
-            "sesIp": "10.0.200.99",
+            "sesIp": "122.9.161.134",
             "checkResult": "0",
             "mdmScheme": "http",
             "isMasterSlaveModel": "0",
