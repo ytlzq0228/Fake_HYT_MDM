@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <title>设备信息 Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>设备信息面板</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Device ID</th>
+                <th>SN</th>
+                <th>Owner</th>
+                <th>IP</th>
+                <th>MAC</th>
+                <th>RAM</th>
+                <th>ROM</th>
+                <th>Battery</th>
+                <th>位置</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for device_id, entry in data.items() %}
+                <tr>
+                    <td>{{ device_id }}</td>
+                    <td>{{ entry.get("sn", "-") }}</td>
+                    <td>{{ entry.get("deviceInfo", {}).get("owner", "-") }}</td>
+                    <td>{{ entry.get("deviceInfo", {}).get("bbInfo", {}).get("ip", "-") }}</td>
+                    <td>{{ entry.get("deviceInfo", {}).get("bbInfo", {}).get("mac", "-") }}</td>
+                    <td>
+                        {{ entry.get("deviceInfo", {}).get("bbInfo", {}).get("ramUsage", "-") }} /
+                        {{ entry.get("deviceInfo", {}).get("bbInfo", {}).get("ramTotal", "-") }}
+                    </td>
+                    <td>
+                        {{ entry.get("deviceInfo", {}).get("bbInfo", {}).get("romUsage", "-") }} /
+                        {{ entry.get("deviceInfo", {}).get("bbInfo", {}).get("romTotal", "-") }}
+                    </td>
+                    <td>
+                        {{ entry.get("deviceInfo", {}).get("wholeInfo", {}).get("batteryLevel", "-") }}%
+                        ({{ entry.get("deviceInfo", {}).get("wholeInfo", {}).get("batteryTemp", "-") }}°C)
+                    </td>
+                    <td>
+                        {{ entry.get("location", {}).get("latitude", "-") }},
+                        {{ entry.get("location", {}).get("longitude", "-") }}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

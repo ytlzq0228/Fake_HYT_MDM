@@ -4,7 +4,10 @@ from email.utils import formatdate
 import json
 from pathlib import Path
 import time
-
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 app = FastAPI()
 
 SERVER_HEADER = "nginx/1.24.0"
@@ -215,6 +218,19 @@ async def fallback(request: Request, unknown: str):
         "data": []
     })
 
+
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
+
+@app.get("/dashboard", response_class=HTMLResponse)
+async def dashboard(request: Request):
+    if DEVICE_LOG_PATH.exists():
+        with DEVICE_LOG_PATH.open("r", encoding="utf-8") as f:
+            devices = json.load(f)
+    else:
+        devices = {}
+    return templates.TemplateResponse("dashboard.html", {"request": request, "devices": devices})
 
 if __name__ == "__main__":
     import uvicorn
