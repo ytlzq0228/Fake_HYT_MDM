@@ -80,6 +80,45 @@ async def check_device_sn(request: Request):
 
 
 @app.post("/nrm/androidTask/getDeviceInfoFromAndroid")
+async def chunked_ok_empty_data(request: Request):
+    try:
+        body = await request.body()
+        req_data = json.loads(body.decode())
+        device_id = req_data.get("deviceId")
+        device_info_raw = req_data.get("deviceInfo")
+
+        if isinstance(device_info_raw, str):
+            device_info = json.loads(device_info_raw)
+        else:
+            device_info = device_info_raw or {}
+
+        # 记录 deviceInfo 到本地 JSON 文件
+        if device_id:
+            if DEVICE_LOG_PATH.exists():
+                with DEVICE_LOG_PATH.open("r", encoding="utf-8") as f:
+                    device_registry = json.load(f)
+            else:
+                device_registry = {}
+
+            entry = device_registry.get(device_id, {})
+            entry["deviceId"] = device_id
+            entry["deviceInfo"] = device_info
+            device_registry[device_id] = entry
+
+            with DEVICE_LOG_PATH.open("w", encoding="utf-8") as f:
+                json.dump(device_registry, f, indent=2, ensure_ascii=False)
+
+    except Exception as e:
+        print(f"[getDeviceInfoFromAndroid] Logging error: {e}")
+
+    # 返回原样 chunked 响应
+    return chunked_response({
+        "code": "0",
+        "success": "true",
+        "msg": ""
+    })
+
+
 @app.post("/nrm/androidTask/getAppInfoFromAndroid")
 @app.post("/nrm/androidUploadInfo/uploadContact")
 async def chunked_ok_empty_data(request: Request):
