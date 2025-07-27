@@ -1,91 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Device Dashboard</title>
-  <link rel="stylesheet" href="/static/style.css">
-  <style>
-    .device-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-      padding: 20px;
-    }
-    .device-card {
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      padding: 15px;
-      width: 350px;
-      box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
-      background-color: #f9f9f9;
-    }
-    .progress-bar {
-      height: 12px;
-      background-color: #e0e0e0;
-      border-radius: 6px;
-      overflow: hidden;
-      margin: 5px 0 10px 0;
-    }
-    .progress-bar-fill {
-      height: 100%;
-      background-color: #4caf50;
-    }
-    .section {
-      margin-bottom: 10px;
-    }
-    .label {
-      font-weight: bold;
-    }
-    .location-link {
-      margin-top: 8px;
-      display: block;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Device Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-  <h1 style="text-align:center;">设备信息面板</h1>
-  <div class="device-container">
-    {% for device_id, entry in devices.items() %}
-      <div class="device-card">
-        <div class="section">
-          <div class="label">Device ID:</div>{{ device_id }}
+    <h1>Registered Devices</h1>
+    <div class="device-grid">
+        {% for device_id, entry in devices.items() %}
+        <div class="device-card">
+            <h2>{{ entry.deviceInfo.wholeInfo.alias if entry.deviceInfo and entry.deviceInfo.wholeInfo else device_id }}</h2>
+            <p><strong>Device ID:</strong> {{ device_id }}</p>
+            <p><strong>Model:</strong> {{ entry.modelName or "N/A" }}</p>
+            <p><strong>SN:</strong> {{ entry.sn or "N/A" }}</p>
+            <p><strong>Version:</strong> {{ entry.versionCode or "N/A" }}</p>
+
+            {% if entry.deviceInfo %}
+                {% set bb = entry.deviceInfo.bbInfo %}
+                {% set whole = entry.deviceInfo.wholeInfo %}
+
+                <p><strong>Android:</strong> {{ bb.androidVersion }}</p>
+                <p><strong>CPU:</strong> {{ bb.cpuModel }}</p>
+                <p><strong>IP:</strong> {{ bb.ip }}</p>
+                <p><strong>MAC:</strong> {{ bb.mac }}</p>
+
+                <div class="bar-group">
+                    <label>RAM Usage ({{ bb.ramUsage }} / {{ bb.ramTotal }} MB)</label>
+                    <progress value="{{ bb.ramUsage }}" max="{{ bb.ramTotal }}"></progress>
+                </div>
+
+                <div class="bar-group">
+                    <label>ROM Usage ({{ bb.romUsage }} / {{ bb.romTotal }} MB)</label>
+                    <progress value="{{ bb.romUsage }}" max="{{ bb.romTotal }}"></progress>
+                </div>
+
+                <div class="bar-group">
+                    <label>Battery Level ({{ whole.batteryLevel }}%)</label>
+                    <progress value="{{ whole.batteryLevel }}" max="100"></progress>
+                </div>
+
+                <p><strong>VPN:</strong> {{ "Yes" if bb.vpn else "No" }}</p>
+                <p><strong>Hotspot:</strong> {{ "Yes" if bb.personalHotSpot else "No" }}</p>
+                <p><strong>Signal Level:</strong> {{ bb.signalLevel }} dBm</p>
+            {% endif %}
+
+            {% if entry.location %}
+                <p><strong>Location:</strong>
+                    <a href="https://maps.google.com/?q={{ entry.location.latitude }},{{ entry.location.longitude }}" target="_blank">
+                        {{ entry.location.latitude }}, {{ entry.location.longitude }}
+                    </a>
+                </p>
+                <p><small>Altitude: {{ entry.location.altitude }} m</small></p>
+            {% endif %}
         </div>
-        <div class="section">
-          <div class="label">SN:</div>{{ entry.sn or 'N/A' }}
-        </div>
-        <div class="section">
-          <div class="label">Owner:</div>{{ entry.deviceInfo.owner if entry.deviceInfo else 'N/A' }}
-        </div>
-        <div class="section">
-          <div class="label">RAM:</div>
-          {% set ram_percent = (entry.deviceInfo.bbInfo.ramUsage / entry.deviceInfo.bbInfo.ramTotal * 100) | round(0, 'floor') if entry.deviceInfo and entry.deviceInfo.bbInfo.ramTotal else 0 %}
-          <div class="progress-bar"><div class="progress-bar-fill" style="width: {{ ram_percent }}%;"></div></div>
-          {{ entry.deviceInfo.bbInfo.ramUsage }}/{{ entry.deviceInfo.bbInfo.ramTotal }} MB
-        </div>
-        <div class="section">
-          <div class="label">ROM:</div>
-          {% set rom_percent = (entry.deviceInfo.bbInfo.romUsage / entry.deviceInfo.bbInfo.romTotal * 100) | round(0, 'floor') if entry.deviceInfo and entry.deviceInfo.bbInfo.romTotal else 0 %}
-          <div class="progress-bar"><div class="progress-bar-fill" style="width: {{ rom_percent }}%;"></div></div>
-          {{ entry.deviceInfo.bbInfo.romUsage }}/{{ entry.deviceInfo.bbInfo.romTotal }} MB
-        </div>
-        <div class="section">
-          <div class="label">Battery:</div>
-          {% set battery_percent = entry.deviceInfo.wholeInfo.batteryLevel if entry.deviceInfo and entry.deviceInfo.wholeInfo else 0 %}
-          <div class="progress-bar"><div class="progress-bar-fill" style="width: {{ battery_percent }}%;"></div></div>
-          {{ battery_percent }}%
-        </div>
-        <div class="section">
-          <div class="label">Location:</div>
-          {% if entry.location %}
-            Lat: {{ entry.location.latitude }}<br>
-            Lng: {{ entry.location.longitude }}<br>
-            <a class="location-link" target="_blank" href="https://www.google.com/maps?q={{ entry.location.latitude }},{{ entry.location.longitude }}">查看地图</a>
-          {% else %}
-            无位置信息
-          {% endif %}
-        </div>
-      </div>
-    {% endfor %}
-  </div>
+        {% endfor %}
+    </div>
 </body>
 </html>
