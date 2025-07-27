@@ -168,7 +168,8 @@ async def chunked_data_null(request: Request):
         location_data = {
             "latitude": req_data.get("latitude"),
             "longitude": req_data.get("longitude"),
-            "altitude": req_data.get("altitude")
+            "altitude": req_data.get("altitude"),
+            "update_time": int(time.time())
         }
 
         if device_id:
@@ -182,7 +183,6 @@ async def chunked_data_null(request: Request):
             # 仅更新 location 和 update_time，保留其他字段
             entry.setdefault("deviceId", device_id)
             entry["location"] = location_data
-            entry["update_time"] = int(time.time())
         
             device_registry[device_id] = entry
         
