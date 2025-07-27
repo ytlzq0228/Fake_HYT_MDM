@@ -9,7 +9,7 @@
     "usageMode": "0",
     "mdmPort": "8083",
     "sesIp": "122.9.161.134",
-    "checkResult": "1",
+    "checkResult": "0",
     "mdmScheme": "http",
     "isMasterSlaveModel": "0",
     "umcMode": "0"

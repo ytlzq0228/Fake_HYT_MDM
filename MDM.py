@@ -8,6 +8,8 @@ app = FastAPI()
 
 SERVER_HEADER = "nginx/1.24.0"
 
+RESPONSE_PATH = Path("check_device_sn_response.json")
+DEVICE_LOG_PATH = Path("device_registry_data.json")
 
 def current_date_header() -> str:
     return formatdate(timeval=None, localtime=False, usegmt=True)
@@ -40,12 +42,38 @@ def chunked_response(data: dict) -> Response:
 
 @app.post("/nrm/androidTask/checkDeviceSn")
 async def check_device_sn(request: Request):
-    await request.body()
+    # 读取请求体
+    try:
+        body = await request.body()
+        req_data = json.loads(body.decode())
+        device_id = req_data.get("deviceId")
+    except Exception as e:
+        print(f"[WARN] 无法解析请求体: {e}")
+        req_data = {}
+        device_id = None
 
-    # 从 JSON 文件中加载响应体
-    response_path = Path("check_device_sn_response.json")
-    with response_path.open("r", encoding="utf-8") as f:
-        response_data = json.load(f)
+    # 写入本地设备登记日志
+    if device_id:
+        try:
+            if DEVICE_LOG_PATH.exists():
+                with DEVICE_LOG_PATH.open("r", encoding="utf-8") as f:
+                    registry = json.load(f)
+            else:
+                registry = {}
+            registry[device_id] = req_data
+            with DEVICE_LOG_PATH.open("w", encoding="utf-8") as f:
+                json.dump(registry, f, indent=2, ensure_ascii=False)
+            print(f"[LOG] 记录设备 deviceId: {device_id}")
+        except Exception as e:
+            print(f"[ERROR] 记录失败: {e}")
+
+    # 返回固定响应
+    try:
+        with RESPONSE_PATH.open("r", encoding="utf-8") as f:
+            response_data = json.load(f)
+    except Exception as e:
+        print(f"[ERROR] 无法加载响应文件: {e}")
+        response_data = {"code": "500", "success": "false", "msg": "内部错误", "data": None}
 
     return fixed_json_response(response_data)
 
