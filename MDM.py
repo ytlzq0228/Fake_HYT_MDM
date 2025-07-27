@@ -223,6 +223,8 @@ async def fallback(request: Request, unknown: str):
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
+DEVICE_LOG_PATH = Path("device_registry_data.json")
+
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request):
     if DEVICE_LOG_PATH.exists():
@@ -230,8 +232,11 @@ async def dashboard(request: Request):
             devices = json.load(f)
     else:
         devices = {}
-    return templates.TemplateResponse("dashboard.html", {"request": request, "devices": devices})
 
+    return templates.TemplateResponse("dashboard.html", {
+        "request": request,
+        "data": devices  # 如果你 dashboard.html 中写的是 data.items()
+    })
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8083, reload=True)
