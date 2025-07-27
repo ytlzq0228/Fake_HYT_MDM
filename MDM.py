@@ -3,6 +3,7 @@ from fastapi.responses import Response
 from email.utils import formatdate
 import json
 from pathlib import Path
+import time
 
 app = FastAPI()
 
@@ -52,7 +53,6 @@ async def check_device_sn(request: Request):
         req_data = {}
         device_id = None
 
-    # 写入本地设备登记日志
     if device_id:
         try:
             if DEVICE_LOG_PATH.exists():
@@ -60,7 +60,11 @@ async def check_device_sn(request: Request):
                     registry = json.load(f)
             else:
                 registry = {}
-            registry[device_id] = req_data
+    
+            existing = registry.get(device_id, {})
+            existing.update(req_data)  # 合并更新
+            registry[device_id] = existing
+    
             with DEVICE_LOG_PATH.open("w", encoding="utf-8") as f:
                 json.dump(registry, f, indent=2, ensure_ascii=False)
             print(f"[LOG] 记录设备 deviceId: {device_id}")
@@ -177,6 +181,7 @@ async def chunked_data_null(request: Request):
             entry = device_registry.get(device_id, {})
             entry["deviceId"] = device_id
             entry["location"] = location_data
+            entry["update_time"] = int(time.time())
             device_registry[device_id] = entry
 
             with DEVICE_LOG_PATH.open("w", encoding="utf-8") as f:
