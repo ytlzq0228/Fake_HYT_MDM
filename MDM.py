@@ -103,12 +103,12 @@ async def chunked_ok_empty_data(request: Request):
                     device_registry = json.load(f)
             else:
                 device_registry = {}
-
+        
             entry = device_registry.get(device_id, {})
             entry["deviceId"] = device_id
-            entry["deviceInfo"] = device_info
+            entry["deviceInfo"] = device_info  # 只更新 deviceInfo，保留其它字段
             device_registry[device_id] = entry
-
+        
             with DEVICE_LOG_PATH.open("w", encoding="utf-8") as f:
                 json.dump(device_registry, f, indent=2, ensure_ascii=False)
 
@@ -177,13 +177,15 @@ async def chunked_data_null(request: Request):
                     device_registry = json.load(f)
             else:
                 device_registry = {}
-
+        
             entry = device_registry.get(device_id, {})
-            entry["deviceId"] = device_id
+            # 仅更新 location 和 update_time，保留其他字段
+            entry.setdefault("deviceId", device_id)
             entry["location"] = location_data
             entry["update_time"] = int(time.time())
+        
             device_registry[device_id] = entry
-
+        
             with DEVICE_LOG_PATH.open("w", encoding="utf-8") as f:
                 json.dump(device_registry, f, indent=2, ensure_ascii=False)
 
