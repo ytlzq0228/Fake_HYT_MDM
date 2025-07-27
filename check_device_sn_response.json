@@ -5,7 +5,7 @@
   "data": {
     "sesPort": "8087",
     "mdmCertMd5": "470af1bd61ae8be30ac5b5ee61e487c7",
-    "netDiskUrl": "http://122.9.161.134:8080/NetDiskWeb",
+    "netDiskUrl": "http://mdm.ctsdn.com:8080/NetDiskWeb",
     "usageMode": "0",
     "mdmPort": "8083",
     "sesIp": "122.9.161.134",
