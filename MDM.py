@@ -143,10 +143,48 @@ async def chunked_data_array(request: Request):
 
 @app.post("/nrm/androidUploadInfo/uploadWorkInterfaceInfo")
 @app.post("/nrm/androidTask/getAndroidCommand")
+async def chunked_data_null(request: Request):
+    body = await request.body()
+    print("Body:", body.decode())
+    return chunked_response({
+        "code": "0",
+        "success": "true",
+        "msg": "",
+        "data": None
+    })
+
 @app.post("/nrm/androidTask/uploadLocationInfo")
 async def chunked_data_null(request: Request):
     body = await request.body()
     print("Body:", body.decode())
+
+    try:
+        req_data = json.loads(body.decode())
+        device_id = req_data.get("deviceId")
+        location_data = {
+            "latitude": req_data.get("latitude"),
+            "longitude": req_data.get("longitude"),
+            "altitude": req_data.get("altitude")
+        }
+
+        if device_id:
+            if DEVICE_LOG_PATH.exists():
+                with DEVICE_LOG_PATH.open("r", encoding="utf-8") as f:
+                    device_registry = json.load(f)
+            else:
+                device_registry = {}
+
+            entry = device_registry.get(device_id, {})
+            entry["deviceId"] = device_id
+            entry["location"] = location_data
+            device_registry[device_id] = entry
+
+            with DEVICE_LOG_PATH.open("w", encoding="utf-8") as f:
+                json.dump(device_registry, f, indent=2, ensure_ascii=False)
+
+    except Exception as e:
+        print(f"[uploadLocationInfo] Logging error: {e}")
+
     return chunked_response({
         "code": "0",
         "success": "true",
