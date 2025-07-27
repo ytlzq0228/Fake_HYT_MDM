@@ -1,53 +1,91 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <title>设备信息 Dashboard</title>
-    <link rel="stylesheet" href="/static/style.css">
+  <meta charset="UTF-8">
+  <title>Device Dashboard</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    .device-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      padding: 20px;
+    }
+    .device-card {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 15px;
+      width: 350px;
+      box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
+      background-color: #f9f9f9;
+    }
+    .progress-bar {
+      height: 12px;
+      background-color: #e0e0e0;
+      border-radius: 6px;
+      overflow: hidden;
+      margin: 5px 0 10px 0;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background-color: #4caf50;
+    }
+    .section {
+      margin-bottom: 10px;
+    }
+    .label {
+      font-weight: bold;
+    }
+    .location-link {
+      margin-top: 8px;
+      display: block;
+    }
+  </style>
 </head>
 <body>
-    <h1>设备信息面板</h1>
-    <table>
-        <thead>
-            <tr>
-                <th>Device ID</th>
-                <th>SN</th>
-                <th>Owner</th>
-                <th>IP</th>
-                <th>MAC</th>
-                <th>RAM</th>
-                <th>ROM</th>
-                <th>Battery</th>
-                <th>位置</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for device_id, entry in data.items() %}
-                <tr>
-                    <td>{{ device_id }}</td>
-                    <td>{{ entry.get("sn", "-") }}</td>
-                    <td>{{ entry.get("deviceInfo", {}).get("owner", "-") }}</td>
-                    <td>{{ entry.get("deviceInfo", {}).get("bbInfo", {}).get("ip", "-") }}</td>
-                    <td>{{ entry.get("deviceInfo", {}).get("bbInfo", {}).get("mac", "-") }}</td>
-                    <td>
-                        {{ entry.get("deviceInfo", {}).get("bbInfo", {}).get("ramUsage", "-") }} /
-                        {{ entry.get("deviceInfo", {}).get("bbInfo", {}).get("ramTotal", "-") }}
-                    </td>
-                    <td>
-                        {{ entry.get("deviceInfo", {}).get("bbInfo", {}).get("romUsage", "-") }} /
-                        {{ entry.get("deviceInfo", {}).get("bbInfo", {}).get("romTotal", "-") }}
-                    </td>
-                    <td>
-                        {{ entry.get("deviceInfo", {}).get("wholeInfo", {}).get("batteryLevel", "-") }}%
-                        ({{ entry.get("deviceInfo", {}).get("wholeInfo", {}).get("batteryTemp", "-") }}°C)
-                    </td>
-                    <td>
-                        {{ entry.get("location", {}).get("latitude", "-") }},
-                        {{ entry.get("location", {}).get("longitude", "-") }}
-                    </td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+  <h1 style="text-align:center;">设备信息面板</h1>
+  <div class="device-container">
+    {% for device_id, entry in devices.items() %}
+      <div class="device-card">
+        <div class="section">
+          <div class="label">Device ID:</div>{{ device_id }}
+        </div>
+        <div class="section">
+          <div class="label">SN:</div>{{ entry.sn or 'N/A' }}
+        </div>
+        <div class="section">
+          <div class="label">Owner:</div>{{ entry.deviceInfo.owner if entry.deviceInfo else 'N/A' }}
+        </div>
+        <div class="section">
+          <div class="label">RAM:</div>
+          {% set ram_percent = (entry.deviceInfo.bbInfo.ramUsage / entry.deviceInfo.bbInfo.ramTotal * 100) | round(0, 'floor') if entry.deviceInfo and entry.deviceInfo.bbInfo.ramTotal else 0 %}
+          <div class="progress-bar"><div class="progress-bar-fill" style="width: {{ ram_percent }}%;"></div></div>
+          {{ entry.deviceInfo.bbInfo.ramUsage }}/{{ entry.deviceInfo.bbInfo.ramTotal }} MB
+        </div>
+        <div class="section">
+          <div class="label">ROM:</div>
+          {% set rom_percent = (entry.deviceInfo.bbInfo.romUsage / entry.deviceInfo.bbInfo.romTotal * 100) | round(0, 'floor') if entry.deviceInfo and entry.deviceInfo.bbInfo.romTotal else 0 %}
+          <div class="progress-bar"><div class="progress-bar-fill" style="width: {{ rom_percent }}%;"></div></div>
+          {{ entry.deviceInfo.bbInfo.romUsage }}/{{ entry.deviceInfo.bbInfo.romTotal }} MB
+        </div>
+        <div class="section">
+          <div class="label">Battery:</div>
+          {% set battery_percent = entry.deviceInfo.wholeInfo.batteryLevel if entry.deviceInfo and entry.deviceInfo.wholeInfo else 0 %}
+          <div class="progress-bar"><div class="progress-bar-fill" style="width: {{ battery_percent }}%;"></div></div>
+          {{ battery_percent }}%
+        </div>
+        <div class="section">
+          <div class="label">Location:</div>
+          {% if entry.location %}
+            Lat: {{ entry.location.latitude }}<br>
+            Lng: {{ entry.location.longitude }}<br>
+            <a class="location-link" target="_blank" href="https://www.google.com/maps?q={{ entry.location.latitude }},{{ entry.location.longitude }}">查看地图</a>
+          {% else %}
+            无位置信息
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
 </body>
 </html>
