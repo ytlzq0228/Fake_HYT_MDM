@@ -1,42 +1,39 @@
-from fastapi import FastAPI, Request
-from fastapi.responses import Response
-import httpx
-import uvicorn
+import hashlib
+import itertools
 
-REMOTE_HOST = "http://122.9.161.134:8083"
+TARGET_MD5 = "470af1bd61ae8be30ac5b5ee61e487c7"
 
-app = FastAPI()
+fields = {
+    "sesPort": "8087",
+    "netDiskUrl": "http://192.168.31.221:8080/NetDiskWeb",
+    "usageMode": "0",
+    "mdmPort": "8083",
+    "sesIp": "122.9.161.134",
+    "checkResult": "0",
+    "mdmScheme": "http",
+    "isMasterSlaveModel": "0",
+    "umcMode": "0"
+}
 
+def md5(s):
+    return hashlib.md5(s.encode('utf-8')).hexdigest()
 
-@app.api_route("/{full_path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"])
-async def proxy(full_path: str, request: Request):
-    # 收集原始请求内容
-    method = request.method
-    headers = dict(request.headers)
-    query_string = request.url.query
-    body = await request.body()
+separators = ["", ":", "|", ","]
 
-    # 打印请求详情
-    print(f"\n--- Received Request ---")
-    print(f"{method} /{full_path}?{query_string}")
-    print("Headers:", headers)
-    print("Body:", body.decode(errors="ignore"))
+tested = 0
+for r in range(2, len(fields)+1):
+    for keys in itertools.permutations(fields.keys(), r):
+        values = [fields[k] for k in keys]
+        for sep in separators:
+            joined = sep.join(values)
+            tested += 1
+            digest = md5(joined)
+            if digest == TARGET_MD5:
+                print("✅ MATCH FOUND!")
+                print("Keys:", keys)
+                print("Separator:", repr(sep))
+                print("Joined string:", joined)
+                print("MD5:", digest)
+                exit(0)
 
-    # 转发请求到远端
-    url = f"{REMOTE_HOST}/{full_path}"
-    if query_string:
-        url += f"?{query_string}"
-
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        resp = await client.request(method, url, content=body, headers=headers)
-
-    # 打印响应
-    print(f"\n--- Remote Response [{resp.status_code}] ---")
-    print("Response Headers:", dict(resp.headers))
-    print("Response Body:", resp.text)
-
-    return Response(content=resp.content, status_code=resp.status_code, headers=dict(resp.headers))
-
-
-if __name__ == "__main__":
-    uvicorn.run("proxy_server:app", host="0.0.0.0", port=8083, reload=True)
+print(f"❌ No match found after testing {tested} combinations.")

@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import Response
 from email.utils import formatdate
 import json
+from pathlib import Path
 
 app = FastAPI()
 
@@ -40,23 +41,14 @@ def chunked_response(data: dict) -> Response:
 @app.post("/nrm/androidTask/checkDeviceSn")
 async def check_device_sn(request: Request):
     await request.body()
-    return fixed_json_response({
-        "code": "0",
-        "success": "true",
-        "msg": "",
-        "data": {
-            "sesPort": "8087",
-            "mdmCertMd5": "470af1bd61ae8be30ac5b5ee61e487c7",
-            "netDiskUrl": "http://192.168.31.221:8080/NetDiskWeb",
-            "usageMode": "0",
-            "mdmPort": "8083",
-            "sesIp": "122.9.161.134",
-            "checkResult": "0",
-            "mdmScheme": "http",
-            "isMasterSlaveModel": "0",
-            "umcMode": "0"
-        }
-    })
+
+    # 从 JSON 文件中加载响应体
+    response_path = Path("check_device_sn_response.json")
+    with response_path.open("r", encoding="utf-8") as f:
+        response_data = json.load(f)
+
+    return fixed_json_response(response_data)
+
 
 
 @app.post("/nrm/androidTask/getDeviceInfoFromAndroid")
