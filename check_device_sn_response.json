@@ -7,9 +7,9 @@
     "mdmCertMd5": "470af1bd61ae8be30ac5b5ee61e487c7",
     "netDiskUrl": "http://mdm.ctsdn.com:8080/NetDiskWeb",
     "usageMode": "0",
-    "mdmPort": "808",
+    "mdmPort": "8083",
     "sesIp": "122.9.161.134",
-    "checkResult": "0",
+    "checkResult": "1",
     "mdmScheme": "http",
     "isMasterSlaveModel": "0",
     "umcMode": "0"
