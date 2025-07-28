@@ -12,7 +12,6 @@ from fastapi.responses import FileResponse
 from datetime import datetime
 from aprs_report import aprs_report
 from utils.responses import fixed_json_response, chunked_response
-from api.function import 
 
 app = FastAPI()
 
@@ -135,7 +134,7 @@ async def chunked_data_null(request: Request):
     })
 
 @app.post("/nrm/androidTask/uploadLocationInfo")
-async def chunked_data_null(request: Request):
+async def uploadLocationInfo(request: Request):
     body = await request.body()
     print("Body:", body.decode())
 
