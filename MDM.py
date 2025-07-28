@@ -9,6 +9,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import FileResponse
+from datetime import datetime
 
 app = FastAPI()
 
@@ -238,10 +239,12 @@ async def dashboard(request: Request):
             devices = json.load(f)
     else:
         devices = {}
+    current_time = int(datetime.utcnow().timestamp())
 
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
-        "devices": devices  # 如果你 dashboard.html 中写的是 data.items()
+        "devices": devices,  # 如果你 dashboard.html 中写的是 data.items()
+        "now": current_time
     })
 
 if __name__ == "__main__":
