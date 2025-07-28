@@ -223,7 +223,7 @@ async def fallback(request: Request, unknown: str):
 
 @app.get("/")
 async def default_image():
-    image_path = "static/QRCODE_2232.jpg"  # 确保图片存在于该路径
+    image_path = "static/QRCODE_2232.png"  # 确保图片存在于该路径
     return FileResponse(image_path, media_type="image/jpeg")
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
