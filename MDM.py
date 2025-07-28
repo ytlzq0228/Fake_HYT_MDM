@@ -11,41 +11,16 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import FileResponse
 from datetime import datetime
 from aprs_report import aprs_report
+from utils.responses import fixed_json_response, chunked_response
+from api.function import 
 
 app = FastAPI()
-
-SERVER_HEADER = "nginx/1.24.0"
 
 RESPONSE_PATH = Path("check_device_sn_response.json")
 DEVICE_LOG_PATH = Path("device_registry_data.json")
 
-def current_date_header() -> str:
-    return formatdate(timeval=None, localtime=False, usegmt=True)
-
-
-def fixed_json_response(data: dict) -> Response:
-    body = json.dumps(data)
-    headers = {
-        "server": SERVER_HEADER,
-        "date": current_date_header(),
-        "content-type": "application/json",
-        "content-length": str(len(body.encode("utf-8"))),
-        "connection": "keep-alive"
-    }
-    return Response(content=body, headers=headers, media_type="application/json", status_code=200)
-
-
-def chunked_response(data: dict) -> Response:
-    body = json.dumps(data)
-    chunked = f"{hex(len(body))[2:]}\r\n{body}\r\n0\r\n\r\n"
-    headers = {
-        "server": SERVER_HEADER,
-        "date": current_date_header(),
-        "content-type": "application/json",
-        "transfer-encoding": "chunked",
-        "connection": "keep-alive"
-    }
-    return Response(content=chunked, headers=headers, media_type="application/json", status_code=200)
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
 
 
 @app.post("/nrm/androidTask/checkDeviceSn")
@@ -88,8 +63,6 @@ async def check_device_sn(request: Request):
 
     return fixed_json_response(response_data)
 
-
-
 @app.post("/nrm/androidTask/getDeviceInfoFromAndroid")
 async def chunked_ok_empty_data(request: Request):
     try:
@@ -129,7 +102,6 @@ async def chunked_ok_empty_data(request: Request):
         "msg": ""
     })
 
-
 @app.post("/nrm/androidTask/getAppInfoFromAndroid")
 @app.post("/nrm/androidUploadInfo/uploadContact")
 async def chunked_ok_empty_data(request: Request):
@@ -140,7 +112,6 @@ async def chunked_ok_empty_data(request: Request):
         "msg": ""
     })
 
-
 @app.post("/nrm/androidUploadInfo/appMd5Check")
 async def chunked_data_array(request: Request):
     await request.body()
@@ -150,7 +121,6 @@ async def chunked_data_array(request: Request):
         "msg": "",
         "data": []
     })
-
 
 @app.post("/nrm/androidUploadInfo/uploadWorkInterfaceInfo")
 @app.post("/nrm/androidTask/getAndroidCommand")
@@ -208,7 +178,6 @@ async def chunked_data_null(request: Request):
         "data": None
     })
 
-
 @app.post("/{unknown:path}")
 async def fallback(request: Request, unknown: str):
     body = await request.body()
@@ -224,16 +193,10 @@ async def fallback(request: Request, unknown: str):
         "data": []
     })
 
-
 @app.get("/")
 async def default_image():
     image_path = "static/QRCODE_2232.png"  # 确保图片存在于该路径
     return FileResponse(image_path, media_type="image/jpeg")
-
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
-
-DEVICE_LOG_PATH = Path("device_registry_data.json")
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request):
@@ -252,4 +215,4 @@ async def dashboard(request: Request):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8083, reload=True)
+    uvicorn.run("MDM:app", host="0.0.0.0", port=8083, reload=True)
