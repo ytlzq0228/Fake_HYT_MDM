@@ -8,6 +8,8 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.responses import FileResponse
+
 app = FastAPI()
 
 SERVER_HEADER = "nginx/1.24.0"
@@ -219,6 +221,10 @@ async def fallback(request: Request, unknown: str):
     })
 
 
+@app.get("/")
+async def default_image():
+    image_path = "static/QRCODE_2232.jpg"  # 确保图片存在于该路径
+    return FileResponse(image_path, media_type="image/jpeg")
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
