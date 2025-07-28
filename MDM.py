@@ -239,7 +239,7 @@ async def dashboard(request: Request):
             devices = json.load(f)
     else:
         devices = {}
-    current_time = int(datetime.utcnow().timestamp())
+    current_time = int(time.time())
 
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
