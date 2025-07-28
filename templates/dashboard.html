@@ -46,12 +46,13 @@
             {% endif %}
 
             {% if entry.location %}
-                <p><strong>Location:</strong>
-                    <a href="https://maps.google.com/?q={{ entry.location.latitude }},{{ entry.location.longitude }}" target="_blank">
-                        {{ entry.location.latitude }}, {{ entry.location.longitude }}
-                    </a>
-                </p>
-                <p><small>Altitude: {{ entry.location.altitude }} m</small></p>
+              <p>
+                Location Time: {{ entry.location.update_time }}<br>
+                Delay: {{ now - entry.location.update_time }} seconds<br>
+                <a href="https://www.google.com/maps?q={{ entry.location.latitude }},{{ entry.location.longitude }}" target="_blank">
+                  View on Google Maps
+                </a>
+              </p>
             {% endif %}
         </div>
         {% endfor %}
