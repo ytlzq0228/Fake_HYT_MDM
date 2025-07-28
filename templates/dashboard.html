@@ -40,8 +40,8 @@
                     <progress value="{{ whole.batteryLevel }}" max="100"></progress>
                 </div>
 
-                <p><strong>VPN:</strong> {{ "Yes" if bb.vpn else "No" }}</p>
-                <p><strong>Hotspot:</strong> {{ "Yes" if bb.personalHotSpot else "No" }}</p>
+                <p><strong>VPN Support:</strong> {{ "Yes" if bb.vpn else "No" }}</p>
+                <p><strong>Hotspot Support:</strong> {{ "Yes" if bb.personalHotSpot else "No" }}</p>
                 <p><strong>Signal Level:</strong> {{ bb.signalLevel }} dBm</p>
             {% endif %}
 
