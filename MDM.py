@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import FileResponse
 from datetime import datetime
+from aprs_report import aprs_report
 
 app = FastAPI()
 
@@ -177,7 +178,7 @@ async def chunked_data_null(request: Request):
             "altitude": req_data.get("altitude"),
             "update_time": int(time.time())
         }
-
+        
         if device_id:
             if DEVICE_LOG_PATH.exists():
                 with DEVICE_LOG_PATH.open("r", encoding="utf-8") as f:
@@ -186,6 +187,7 @@ async def chunked_data_null(request: Request):
                 device_registry = {}
         
             entry = device_registry.get(device_id, {})
+            device_name=entry["deviceInfo"]["wholeInfo"]["alias"]
             # 仅更新 location 和 update_time，保留其他字段
             entry.setdefault("deviceId", device_id)
             entry["location"] = location_data
@@ -194,7 +196,8 @@ async def chunked_data_null(request: Request):
         
             with DEVICE_LOG_PATH.open("w", encoding="utf-8") as f:
                 json.dump(device_registry, f, indent=2, ensure_ascii=False)
-
+        #APRS上报
+        aprs_report(location_data["latitude"], location_data["longitude"], device_name)
     except Exception as e:
         print(f"[uploadLocationInfo] Logging error: {e}")
 
