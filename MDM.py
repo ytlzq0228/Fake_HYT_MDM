@@ -65,6 +65,7 @@ async def check_device_sn(request: Request):
 @app.post("/login/login")
 async def login(request: Request):
     body = await request.body()
+    print("Body:", body.decode())
     # 返回固定响应
     try:
         with RESPONSE_PATH.open("r", encoding="utf-8") as f:
