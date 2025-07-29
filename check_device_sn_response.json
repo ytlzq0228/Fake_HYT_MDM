@@ -22,7 +22,7 @@
     "data":{
       "ip":"mdm.ctsdn.com",
       "port":"2232",
-      "sslPort":" ",
+      "sslPort":"",
       "channelId":"",
       "token":"2e3737c961ed4fe98030f5fe0e80d7b1",
       "updateMd5":"true"
