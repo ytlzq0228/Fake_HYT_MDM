@@ -47,10 +47,10 @@ def handle_client(conn, addr):
 
             if (
                 msg_type == 5
-                and msg_content.get("name") == "00861067070143638"
-                and msg_content.get("password") == "077A7C98232FF38A0784BB89690BA91D"
-                and msg_content.get("token") == "04b9deb9bd03417bb07ee9c8b775f476"
-                and msg_content.get("type") == "0"
+                #and msg_content.get("name") == "00861067070143638"
+                #and msg_content.get("password") == "077A7C98232FF38A0784BB89690BA91D"
+                #and msg_content.get("token") == "04b9deb9bd03417bb07ee9c8b775f476"
+                #and msg_content.get("type") == "0"
             ):
                 # 发送第一条
                 conn.sendall((json.dumps(RESPONSE_6) + "\n").encode("utf-8"))
