@@ -5,7 +5,7 @@
     "msg": "",
     "data": {
       "sesPort": "2232",
-      "mdmCertMd5": "7eaf84a84a050142435a60489293201e",
+      "mdmCertMd5": "93fd52528589700860221c87f685cf39",
       "netDiskUrl": "http://mdm.ctsdn.com:8080/NetDiskWeb",
       "usageMode": "0",
       "mdmPort": "2232",
