@@ -1,5 +1,5 @@
 {
-  "test_check_device_sn":{
+  "check_device_sn":{
     "code": "0",
     "success": "true",
     "msg": "",
@@ -29,7 +29,7 @@
     },
     "success":"true"
   },
-  "check_device_sn":{
+  "old_check_device_sn":{
     "code": "0",
     "success": "true",
     "msg": "",
