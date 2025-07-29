@@ -191,6 +191,12 @@ async def uploadLocationInfo(request: Request):
         "data": None
     })
 
+@app.api_route("/{full_path:path}", methods=["GET", "POST", "PUT", "DELETE"])
+async def catch_all(request: Request, full_path: str):
+    body = await request.body()
+    print(f"[UNMATCHED] {request.method} /{full_path}")
+    print(body.decode(errors="ignore"))
+    return PlainTextResponse("Unhandled path", status_code=404)
 
 @app.get("/")
 async def default_image():
@@ -227,12 +233,7 @@ async def fallback(request: Request, unknown: str):
         "data": []
     })
 
-@app.api_route("/{full_path:path}", methods=["GET", "POST", "PUT", "DELETE"])
-async def catch_all(request: Request, full_path: str):
-    body = await request.body()
-    print(f"[UNMATCHED] {request.method} /{full_path}")
-    print(body.decode(errors="ignore"))
-    return PlainTextResponse("Unhandled path", status_code=404)
+
 
 if __name__ == "__main__":
     import uvicorn
