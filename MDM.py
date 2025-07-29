@@ -177,20 +177,6 @@ async def uploadLocationInfo(request: Request):
         "data": None
     })
 
-@app.post("/{unknown:path}")
-async def fallback(request: Request, unknown: str):
-    body = await request.body()
-    print(f"[UNKNOWN] {request.method} {request.url.path}?{request.url.query}")
-    try:
-        print("Body:", body.decode())
-    except:
-        print("Body: <non-decodable>")
-    return chunked_response({
-        "code": "0",
-        "success": "true",
-        "msg": "",
-        "data": []
-    })
 
 @app.get("/")
 async def default_image():
@@ -212,7 +198,7 @@ async def dashboard(request: Request):
         "now": current_time
     })
 
-@app.post("/login/login")
+@app.post("/login/login?")
 async def login(request: Request):
     body = await request.body()
     #print("Body:", body.decode())
@@ -228,6 +214,21 @@ async def login(request: Request):
             "updateMd5":"true"
         },
         "success":"true"
+    })
+
+@app.post("/{unknown:path}")
+async def fallback(request: Request, unknown: str):
+    body = await request.body()
+    print(f"[UNKNOWN] {request.method} {request.url.path}?{request.url.query}")
+    try:
+        print("Body:", body.decode())
+    except:
+        print("Body: <non-decodable>")
+    return chunked_response({
+        "code": "0",
+        "success": "true",
+        "msg": "",
+        "data": []
     })
 
 
