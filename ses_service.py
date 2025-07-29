@@ -1,7 +1,7 @@
 import socket
 import json
 import threading
-
+import time
 HOST = '0.0.0.0'
 PORT = 2233
 
@@ -55,7 +55,7 @@ def handle_client(conn, addr):
                 # 发送第一条
                 conn.sendall((json.dumps(RESPONSE_6) + "\n").encode("utf-8"))
                 print("[<] Sent msgType 6")
-
+                time.sleep(1)
                 # 发送第二条
                 conn.sendall((json.dumps(RESPONSE_9) + "\n").encode("utf-8"))
                 print("[<] Sent msgType 9")
@@ -73,7 +73,7 @@ def handle_client(conn, addr):
 
 
 def ses_server():
-    print(f"[*] Starting TCP server on {HOST}:{PORT}")
+    print(f"[*] Starting SES server on {HOST}:{PORT}")
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server.bind((HOST, PORT))
