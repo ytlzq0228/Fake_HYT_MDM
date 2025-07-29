@@ -72,7 +72,7 @@ def handle_client(conn, addr):
         print(f"[-] Connection closed for {addr}")
 
 
-def start_server():
+def ses_server():
     print(f"[*] Starting TCP server on {HOST}:{PORT}")
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -86,4 +86,4 @@ def start_server():
 
 
 if __name__ == "__main__":
-    start_server()
+    ses_server()
