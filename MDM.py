@@ -74,6 +74,8 @@ async def login(request: Request):
         print(f"[ERROR] 无法加载响应文件: {e}")
         response_data = {"code": "500", "success": "false", "msg": "内部错误", "data": None}
 
+    return fixed_json_response(response_data)
+
 @app.post("/nrm/androidTask/getDeviceInfoFromAndroid")
 async def chunked_ok_empty_data(request: Request):
     try:
