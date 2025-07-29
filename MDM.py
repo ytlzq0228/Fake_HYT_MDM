@@ -12,7 +12,7 @@ from fastapi.responses import FileResponse
 from datetime import datetime
 from aprs_report import aprs_report
 from utils.responses import fixed_json_response, chunked_response
-from ses_server import ses_server
+from ses_service import ses_server
 ses_server()
 app = FastAPI()
 
