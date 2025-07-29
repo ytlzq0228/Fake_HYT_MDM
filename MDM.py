@@ -55,12 +55,23 @@ async def check_device_sn(request: Request):
     # 返回固定响应
     try:
         with RESPONSE_PATH.open("r", encoding="utf-8") as f:
-            response_data = json.load(f)
+            response_data = json.load(f)["check_device_sn"]
     except Exception as e:
         print(f"[ERROR] 无法加载响应文件: {e}")
         response_data = {"code": "500", "success": "false", "msg": "内部错误", "data": None}
 
     return fixed_json_response(response_data)
+
+@app.post("/login/login")
+async def login(request: Request):
+    body = await request.body()
+    # 返回固定响应
+    try:
+        with RESPONSE_PATH.open("r", encoding="utf-8") as f:
+            response_data = json.load(f)["login"]
+    except Exception as e:
+        print(f"[ERROR] 无法加载响应文件: {e}")
+        response_data = {"code": "500", "success": "false", "msg": "内部错误", "data": None}
 
 @app.post("/nrm/androidTask/getDeviceInfoFromAndroid")
 async def chunked_ok_empty_data(request: Request):
@@ -196,24 +207,6 @@ async def dashboard(request: Request):
         "request": request,
         "devices": devices,  # 如果你 dashboard.html 中写的是 data.items()
         "now": current_time
-    })
-
-@app.post("/login/login")
-async def login(request: Request):
-    body = await request.body()
-    #print("Body:", body.decode())
-    return chunked_response({
-        "msg":"",
-        "code":"",
-        "data":{
-            "ip":"mem.ctsdn.com",
-            "port":"2232",
-            "sslPort":"2233",
-            "channelId":"",
-            "token":"2e3737c961ed4fe98030f5fe0e80d7b1",
-            "updateMd5":"true"
-        },
-        "success":"true"
     })
 
 @app.post("/{unknown:path}")
