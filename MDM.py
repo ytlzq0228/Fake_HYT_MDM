@@ -13,7 +13,7 @@ from datetime import datetime
 from aprs_report import aprs_report
 from utils.responses import fixed_json_response, chunked_response
 from ses_service import ses_server
-ses_server()
+
 app = FastAPI()
 
 RESPONSE_PATH = Path("check_device_sn_response.json")
@@ -22,6 +22,11 @@ DEVICE_LOG_PATH = Path("device_registry_data.json")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
+
+@app.on_event("startup")
+def start_ses_server():
+    thread = threading.Thread(target=ses_server, daemon=True)
+    thread.start()
 
 @app.post("/nrm/androidTask/checkDeviceSn")
 async def check_device_sn(request: Request):
