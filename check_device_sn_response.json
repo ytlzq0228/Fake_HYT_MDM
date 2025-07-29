@@ -5,7 +5,7 @@
     "msg": "",
     "data": {
       "sesPort": "2232",
-      "mdmCertMd5": "d41d8cd98f00b204e9800998ecf8427e",
+      "mdmCertMd5": "",
       "netDiskUrl": "http://mdm.ctsdn.com:8080/NetDiskWeb",
       "usageMode": "0",
       "mdmPort": "2232",
@@ -20,11 +20,11 @@
     "msg":"",
     "code":"",
     "data":{
-      "ip":"mdm.ctsdn.com",
+      "ip":"122.9.161.134",
       "port":"9999",
-      "sslPort":"2233",
+      "sslPort":"9997",
       "channelId":"",
-      "token":"2e3737c961ed4fe98030f5fe0e80d7b1",
+      "token":"04b9deb9bd03417bb07ee9c8b775f476",
       "updateMd5":"ture"
     },
     "success":"true"
