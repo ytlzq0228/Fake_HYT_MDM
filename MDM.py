@@ -212,6 +212,25 @@ async def dashboard(request: Request):
         "now": current_time
     })
 
+@app.post("/login/login")
+async def login(request: Request):
+    body = await request.body()
+    #print("Body:", body.decode())
+    return chunked_response({
+        "msg":"",
+        "code":"",
+        "data":{
+            "ip":"mem.ctsdn.com",
+            "port":"2232",
+            "sslPort":"2233",
+            "channelId":"",
+            "token":"2e3737c961ed4fe98030f5fe0e80d7b1",
+            "updateMd5":"true"
+        },
+        "success":"true"
+    })
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("MDM:app", host="0.0.0.0", port=8083, reload=True)
