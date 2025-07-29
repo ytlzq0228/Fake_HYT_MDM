@@ -198,7 +198,7 @@ async def dashboard(request: Request):
         "now": current_time
     })
 
-@app.post("/login/login?")
+@app.post("/login/login")
 async def login(request: Request):
     body = await request.body()
     #print("Body:", body.decode())
