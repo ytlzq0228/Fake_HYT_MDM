@@ -20,8 +20,8 @@
     "msg":"",
     "code":"",
     "data":{
-      "ip":"122.9.161.134",
-      "port":"9999",
+      "ip":"mdm.ctsdn.com",
+      "port":"2233",
       "sslPort":"9997",
       "channelId":"",
       "token":"651bd27d0cdf4039aad34f382fcc21eb",
