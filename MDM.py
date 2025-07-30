@@ -67,7 +67,7 @@ async def check_device_sn(request: Request):
     except Exception as e:
         print(f"[ERROR] 无法加载响应文件: {e}")
         response_data = {"code": "500", "success": "false", "msg": "内部错误", "data": None}
-    print(response_data)
+    #print(response_data)
     return fixed_json_response(response_data)
 
 @app.post("/login/login")
@@ -81,7 +81,7 @@ async def login(request: Request):
     except Exception as e:
         print(f"[ERROR] 无法加载响应文件: {e}")
         response_data = {"code": "500", "success": "false", "msg": "内部错误", "data": None}
-    print(response_data)
+    #print(response_data)
     return fixed_json_response(response_data)
 
 @app.post("/nrm/androidTask/getDeviceInfoFromAndroid")
