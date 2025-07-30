@@ -76,15 +76,18 @@ def handle_client(conn, addr):
                 msg_type = payload.get("msgType")
                 msg_content_str = payload.get("msgContent", "{}")
                 msg_content = json.loads(msg_content_str)
+                name=msg_content.get("name", "")
 
                 if msg_type == 5:
                     # 发送第一条
                     conn.sendall((json.dumps(RESPONSE_6) + "\n").encode("utf-8"))
                     print("[<] Sent msgType 6")
-                    time.sleep(1)
+                elif msg_type == 4:
                     # 发送第二条
-                    conn.sendall((json.dumps(build_response_9()) + "\n").encode("utf-8"))
+                    conn.sendall((json.dumps(build_response_9(user_name=name)) + "\n").encode("utf-8"))
                     print("[<] Sent msgType 9")
+                elif msg_type == 9:
+                    print("[>] Received Command ACK Good!")
                 else:
                     print("[!] Invalid msgContent or msgType")
 
