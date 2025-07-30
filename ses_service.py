@@ -8,6 +8,21 @@ from datetime import datetime
 HOST = '0.0.0.0'
 PORT = 2233
 
+# 全局缓存
+_cached_uuid = None
+_cached_time = 0
+UUID_CACHE_SECONDS = 600  # 缓存有效期（单位：秒）
+
+def get_cached_uuid():
+    global _cached_uuid, _cached_time
+    now = time.time()
+
+    if now - _cached_time > UUID_CACHE_SECONDS:
+        _cached_uuid = uuid.uuid4().hex
+        _cached_time = now
+
+    return _cached_uuid
+
 RESPONSE_6 = {
     "msgType": 6,
     "msgContent": json.dumps({
@@ -17,7 +32,7 @@ RESPONSE_6 = {
 }
 
 def build_response_9(user_name: str = "00861067070143638") -> dict:
-    command_uuid = uuid.uuid4().hex
+    command_uuid = get_cached_uuid()
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     content = {
