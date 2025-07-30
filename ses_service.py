@@ -11,7 +11,7 @@ PORT = 2233
 # 全局缓存
 _cached_uuid = None
 _cached_time = 0
-UUID_CACHE_SECONDS = 600  # 缓存有效期（单位：秒）
+UUID_CACHE_SECONDS = 300  # 缓存有效期（单位：秒）
 
 def get_cached_uuid():
     global _cached_uuid, _cached_time
