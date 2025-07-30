@@ -86,7 +86,7 @@ def handle_client(conn, addr):
                     # 发送第二条
                     conn.sendall((json.dumps(build_response_9(user_name=name)) + "\n").encode("utf-8"))
                     print("[<] Sent msgType 9")
-                elif msg_type == 9:
+                elif msg_type == 8:
                     print("[>] Received Command ACK Good!")
                 else:
                     print("[!] Invalid msgContent or msgType")
