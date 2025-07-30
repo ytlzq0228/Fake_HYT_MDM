@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import FileResponse
 from datetime import datetime
-from aprs_report import aprs_report
+from utils.aprs_report import aprs_report
 from utils.responses import fixed_json_response, chunked_response
 from ses_service import ses_server
 import threading
@@ -188,7 +188,7 @@ async def uploadLocationInfo(request: Request):
             with DEVICE_LOG_PATH.open("w", encoding="utf-8") as f:
                 json.dump(device_registry, f, indent=2, ensure_ascii=False)
         #APRS上报
-        aprs_report(location_data["latitude"], location_data["longitude"], device_name)
+        aprs_report(location_data["latitude"], location_data["longitude"], device_name, device_id)
     except Exception as e:
         print(f"[uploadLocationInfo] Logging error: {e}")
 
