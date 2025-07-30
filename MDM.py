@@ -247,4 +247,4 @@ async def fallback(request: Request, unknown: str):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("MDM:app", host="0.0.0.0", port=8083, reload=True)
+    uvicorn.run("MDM:app", host="0.0.0.0", port=2232, reload=True)

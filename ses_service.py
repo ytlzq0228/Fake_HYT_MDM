@@ -2,6 +2,9 @@ import socket
 import json
 import threading
 import time
+import json
+import uuid
+from datetime import datetime
 HOST = '0.0.0.0'
 PORT = 2233
 
@@ -13,64 +16,73 @@ RESPONSE_6 = {
     })
 }
 
-RESPONSE_9 = {
-    "msgType": 9,
-    "msgContent": json.dumps({
-        "UserName": "00861067070143638",
-        "content": json.dumps({
-            "CommandUUID": "e117fc8fd54c484d939c0cb157987ee1",
-            "body": {
-                "msgType": "deviceControlMsg",
-                "reExecuteTimes": 0,
-                "msgDate": "2025-07-29 21:01:15",
-                "RequestType": "MultipleCommad"
-            },
-            "type": "HyteraCommand"
-        }),
+def build_response_9(user_name: str = "00861067070143638") -> dict:
+    command_uuid = uuid.uuid4().hex
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    content = {
+        "CommandUUID": command_uuid,
+        "body": {
+            "msgType": "deviceControlMsg",
+            "reExecuteTimes": 0,
+            "msgDate": now_str,
+            "RequestType": "MultipleCommad"
+        },
+        "type": "HyteraCommand"
+    }
+
+    msg_content = {
+        "UserName": user_name,
+        "content": json.dumps(content),
         "fromName": "push",
-        "CommandUUID": "e117fc8fd54c484d939c0cb157987ee1"
-    })
-}
+        "CommandUUID": command_uuid
+    }
+
+    return {
+        "msgType": 9,
+        "msgContent": json.dumps(msg_content)
+    }
 
 
 def handle_client(conn, addr):
     print(f"[+] Connection from {addr}")
     try:
-        data = conn.recv(4096).decode("utf-8")
-        print(f"[>] Received: {data}")
+        while True:
+            data = conn.recv(4096)
+            if not data:
+                print(f"[-] Client {addr} disconnected")
+                break
 
-        try:
-            payload = json.loads(data)
-            msg_type = payload.get("msgType")
-            msg_content_str = payload.get("msgContent", "{}")
-            msg_content = json.loads(msg_content_str)
+            try:
+                decoded = data.decode("utf-8")
+                print(f"[>] Received: {decoded}")
 
-            if (
-                msg_type == 5
-                #and msg_content.get("name") == "00861067070143638"
-                #and msg_content.get("password") == "077A7C98232FF38A0784BB89690BA91D"
-                #and msg_content.get("token") == "04b9deb9bd03417bb07ee9c8b775f476"
-                #and msg_content.get("type") == "0"
-            ):
-                # 发送第一条
-                conn.sendall((json.dumps(RESPONSE_6) + "\n").encode("utf-8"))
-                print("[<] Sent msgType 6")
-                time.sleep(1)
-                # 发送第二条
-                conn.sendall((json.dumps(RESPONSE_9) + "\n").encode("utf-8"))
-                print("[<] Sent msgType 9")
+                payload = json.loads(decoded)
+                msg_type = payload.get("msgType")
+                msg_content_str = payload.get("msgContent", "{}")
+                msg_content = json.loads(msg_content_str)
 
-            else:
-                print("[!] Invalid msgContent or msgType")
-        except Exception as e:
-            print(f"[!] JSON decode error: {e}")
+                if msg_type == 5:
+                    # 发送第一条
+                    conn.sendall((json.dumps(RESPONSE_6) + "\n").encode("utf-8"))
+                    print("[<] Sent msgType 6")
+                    time.sleep(1)
+                    # 发送第二条
+                    conn.sendall((json.dumps(build_response_9()) + "\n").encode("utf-8"))
+                    print("[<] Sent msgType 9")
+                else:
+                    print("[!] Invalid msgContent or msgType")
+
+            except json.JSONDecodeError as e:
+                print(f"[!] JSON decode error: {e}")
+            except Exception as e:
+                print(f"[!] Error processing data from {addr}: {e}")
 
     except Exception as e:
         print(f"[!] Error handling client {addr}: {e}")
     finally:
         conn.close()
         print(f"[-] Connection closed for {addr}")
-
 
 def ses_server():
     print(f"[*] Starting SES server on {HOST}:{PORT}")

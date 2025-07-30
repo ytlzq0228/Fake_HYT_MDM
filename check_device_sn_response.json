@@ -1,5 +1,5 @@
 {
-  "000check_device_sn":{
+  "check_device_sn":{
     "code": "0",
     "success": "true",
     "msg": "",
@@ -9,7 +9,7 @@
       "netDiskUrl": "http://mdm.ctsdn.com:8080/NetDiskWeb",
       "usageMode": "0",
       "mdmPort": "2232",
-      "sesIp": "mdm.ctsdn.com",
+      "sesIp": "192.168.2.1",
       "checkResult": "0",
       "mdmScheme": "http",
       "isMasterSlaveModel": "0",
@@ -20,7 +20,7 @@
     "msg":"",
     "code":"",
     "data":{
-      "ip":"mdm.ctsdn.com",
+      "ip":"192.168.2.1",
       "port":"2233",
       "sslPort":"9997",
       "channelId":"",
@@ -29,7 +29,7 @@
     },
     "success":"true"
   },
-  "check_device_sn":{
+  "000check_device_sn":{
     "code": "0",
     "success": "true",
     "msg": "",
