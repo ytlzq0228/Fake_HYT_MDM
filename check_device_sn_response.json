@@ -11,7 +11,7 @@
       "mdmPort": "2232",
       "sesIp": "mdm.ctsdn.com",
       "checkResult": "0",
-      "mdmScheme": "https",
+      "mdmScheme": "http",
       "isMasterSlaveModel": "0",
       "umcMode": "0"
     }
