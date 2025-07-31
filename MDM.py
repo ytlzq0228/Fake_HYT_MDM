@@ -17,11 +17,10 @@ from utils.aprs_report import aprs_report
 from utils.responses import fixed_json_response, chunked_response
 from utils import data_memory_cache
 
+
 app = FastAPI()
 
 RESPONSE_PATH = Path("static/response.json")
-DEVICE_LOG_PATH = Path("static/device_registry_data.json")
-
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
@@ -35,7 +34,10 @@ def startup_tasks():
     # 启动缓存管理器
     data_memory_cache.start_device_cache_manager()
 
-
+@app.on_event("shutdown")
+def graceful_shutdown():
+    print("[Cache] Application is shutting down, flushing cache to disk")
+    data_memory_cache.save_device_cache_once()
 
 @app.post("/nrm/androidTask/checkDeviceSn")
 async def check_device_sn(request: Request):
@@ -192,17 +194,14 @@ async def default_image():
     return FileResponse(image_path, media_type="image/jpeg")
 
 @app.get("/dashboard", response_class=HTMLResponse)
+@app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request):
-    if DEVICE_LOG_PATH.exists():
-        with DEVICE_LOG_PATH.open("r", encoding="utf-8") as f:
-            devices = json.load(f)
-    else:
-        devices = {}
+    devices = data_memory_cache.get_device_cache()
     current_time = int(time.time())
 
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
-        "devices": devices,  # 如果你 dashboard.html 中写的是 data.items()
+        "devices": devices,
         "now": current_time
     })
 
