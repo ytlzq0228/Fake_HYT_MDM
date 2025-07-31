@@ -14,12 +14,12 @@ from utils.aprs_report import aprs_report
 from utils.responses import fixed_json_response, chunked_response
 from ses_service import ses_server
 import threading
-
+import uuid
 
 app = FastAPI()
 
-RESPONSE_PATH = Path("check_device_sn_response.json")
-DEVICE_LOG_PATH = Path("device_registry_data.json")
+RESPONSE_PATH = Path("static/response.json")
+DEVICE_LOG_PATH = Path("static/device_registry_data.json")
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
@@ -78,6 +78,7 @@ async def login(request: Request):
     try:
         with RESPONSE_PATH.open("r", encoding="utf-8") as f:
             response_data = json.load(f)["login"]
+            response_data["data"]["token"]=uuid.uuid4().hex
     except Exception as e:
         print(f"[ERROR] 无法加载响应文件: {e}")
         response_data = {"code": "500", "success": "false", "msg": "内部错误", "data": None}
@@ -178,7 +179,8 @@ async def uploadLocationInfo(request: Request):
                 device_registry = {}
         
             entry = device_registry.get(device_id, {})
-            device_name=entry["deviceInfo"]["wholeInfo"]["alias"]
+            device_name=entry.get("deviceInfo",{}).get("wholeInfo",{}).get("alias","")
+            issiRadioId=entry.get("deviceInfo",{}).get("nbInfo",{}).get("issiRadioId","")
             # 仅更新 location 和 update_time，保留其他字段
             entry.setdefault("deviceId", device_id)
             entry["location"] = location_data
@@ -188,7 +190,7 @@ async def uploadLocationInfo(request: Request):
             with DEVICE_LOG_PATH.open("w", encoding="utf-8") as f:
                 json.dump(device_registry, f, indent=2, ensure_ascii=False)
         #APRS上报
-        aprs_report(location_data["latitude"], location_data["longitude"], device_name, device_id)
+        aprs_report(location_data["latitude"], location_data["longitude"], device_name, issiRadioId, device_id)
     except Exception as e:
         print(f"[uploadLocationInfo] Logging error: {e}")
 
@@ -198,7 +200,6 @@ async def uploadLocationInfo(request: Request):
         "msg": "",
         "data": None
     })
-
 
 
 @app.get("/")

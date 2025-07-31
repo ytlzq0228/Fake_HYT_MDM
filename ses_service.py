@@ -31,7 +31,7 @@ RESPONSE_6 = {
     })
 }
 
-def build_response_9(user_name: str = "00861067070143638") -> dict:
+def build_response_9(user_name: str = "") -> dict:
     command_uuid = get_cached_uuid()
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
