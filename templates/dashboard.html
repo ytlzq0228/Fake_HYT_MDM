@@ -75,7 +75,6 @@
                   {{ entry.location.aprs_ssid }}
                 </a><br>
               </p>
-              <p>Debug: {{ entry.location.latitude }} , {{ entry.location.longitude }}</p>
               {% set lat = entry.location.latitude | float %}
               {% set lon = entry.location.longitude | float %}
               {% set dx = 0.01 %}
