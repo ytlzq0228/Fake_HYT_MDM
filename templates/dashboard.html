@@ -36,6 +36,22 @@
                 </div>
 
                 <div class="bar-group">
+                    <label>
+                        Battery Level ({{ whole.batteryLevel }}%)
+                        {% if whole.batteryStatus == 5 %}
+                            - 已充满
+                        {% elif whole.batteryStatus == 4 %}
+                            - 充电中
+                        {% elif whole.batteryStatus == 3 %}
+                            - 未充电
+                        {% else %}
+                            - 状态未知
+                        {% endif %}
+                    </label>
+                    <progress value="{{ whole.batteryLevel }}" max="100"></progress>
+                </div>
+
+                <div class="bar-group">
                     <label>Battery Level ({{ whole.batteryLevel }}%)</label>
                     <progress value="{{ whole.batteryLevel }}" max="100"></progress>
                 </div>
