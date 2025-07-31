@@ -51,10 +51,11 @@
                 Last Update Location {{ now - entry.location.update_time }} seconds before<br>
                 <a href="https://www.google.com/maps?q={{ entry.location.latitude }},{{ entry.location.longitude }}" target="_blank">
                   View on Google Maps
-                </a>
+                </a><br>
+                APRS SSID: {{ entry.location.aprs_ssid }}<br>
                 <a href="https://aprs.fi/#!call=a%2F{{ entry.location.aprs_ssid }}" target="_blank">
-                  View on APRS
-                </a>
+                  View on APRS for {{ entry.location.aprs_ssid }}
+                </a><br>
               </p>
             {% endif %}
         </div>
