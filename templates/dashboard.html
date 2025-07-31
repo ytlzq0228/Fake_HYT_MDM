@@ -39,15 +39,15 @@
                     <label>
                         Battery Level ({{ whole.batteryLevel }}%)
                         {% if whole.batteryStatus == 5 %}
-                            - 已充满-5
+                            - FULL-5
                         {% elif whole.batteryStatus == 4 %}
-                            - 充电中-4
+                            - Charging-4
                         {% elif whole.batteryStatus == 3 %}
-                            - 未充电-3
+                            - Not Charge-3
                         {% elif whole.batteryStatus == 2 %}
-                            - 充电中-2
+                            - Charging-2
                         {% else %}
-                            - 状态未知
+                            - STATUS {{whole.batteryStatus}}
                         {% endif %}
                     </label>
                     <progress value="{{ whole.batteryLevel }}" max="100"></progress>
