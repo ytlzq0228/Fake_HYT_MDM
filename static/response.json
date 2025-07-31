@@ -1,0 +1,49 @@
+{
+  "check_device_sn":{
+    "code": "0",
+    "success": "true",
+    "msg": "",
+    "data": {
+      "sesPort": "2232",
+      "mdmCertMd5": "",
+      "netDiskUrl": "http://mdm.ctsdn.com:8080/NetDiskWeb",
+      "usageMode": "0",
+      "mdmPort": "2232",
+      "sesIp": "mdm.ctsdn.com",
+      "checkResult": "0",
+      "mdmScheme": "http",
+      "isMasterSlaveModel": "0",
+      "umcMode": "0"
+    }
+  },
+  "login":{
+    "msg":"",
+    "code":"",
+    "data":{
+      "ip":"mdm.ctsdn.com",
+      "port":"2233",
+      "sslPort":"9997",
+      "channelId":"",
+      "token":"651bd27d0cdf4039aad34f382fcc21eb",
+      "updateMd5":"ture"
+    },
+    "success":"true"
+  },
+  "000check_device_sn":{
+    "code": "0",
+    "success": "true",
+    "msg": "",
+    "data": {
+      "sesPort": "8087",
+      "mdmCertMd5": "",
+      "netDiskUrl": "http://mdm.ctsdn.com:8080/NetDiskWeb",
+      "usageMode": "0",
+      "mdmPort": "8083",
+      "sesIp": "122.9.161.134",
+      "checkResult": "0",
+      "mdmScheme": "http",
+      "isMasterSlaveModel": "0",
+      "umcMode": "0"
+    }
+  }
+}
