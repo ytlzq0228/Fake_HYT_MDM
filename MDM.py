@@ -181,16 +181,17 @@ async def uploadLocationInfo(request: Request):
             entry = device_registry.get(device_id, {})
             device_name=entry.get("deviceInfo",{}).get("wholeInfo",{}).get("alias","")
             issiRadioId=entry.get("deviceInfo",{}).get("nbInfo",{}).get("issiRadioId","")
+            aprs_ssid=aprs_report(location_data["latitude"], location_data["longitude"], device_name, issiRadioId, device_id)
             # 仅更新 location 和 update_time，保留其他字段
             entry.setdefault("deviceId", device_id)
             entry["location"] = location_data
-        
+            entry["location"]["aprs_ssid"]=aprs_ssid
             device_registry[device_id] = entry
-        
+
             with DEVICE_LOG_PATH.open("w", encoding="utf-8") as f:
                 json.dump(device_registry, f, indent=2, ensure_ascii=False)
         #APRS上报
-        aprs_report(location_data["latitude"], location_data["longitude"], device_name, issiRadioId, device_id)
+        
     except Exception as e:
         print(f"[uploadLocationInfo] Logging error: {e}")
 

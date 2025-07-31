@@ -94,7 +94,7 @@ def aprs_password(callsign: str) -> int:
 
 
 def aprs_report(lat_input, lon_input, device_name, issiRadioId, device_id):
-
+	device_ssid=""
 	try:
 		CALLSIGN=get_CALLSIGN(issiRadioId)
 		APRS_PASSWORD=str(aprs_password(CALLSIGN))
@@ -131,9 +131,12 @@ def aprs_report(lat_input, lon_input, device_name, issiRadioId, device_id):
 		if aprs_return==len(frame_text)+2:
 			print('APRS Report Good Length:%s'%aprs_return)
 		else:
-			print('APRS Report Return:%s Frame Length: %s Retrying..'%(aprs_return,frame_text))
+			print('APRS Report Return:%s Frame Length: %s Bad Request..'%(aprs_return,frame_text))
+		
 	except Exception as err:
 		print(f"APRS Report Error: {err}")
+	finally:
+		return device_ssid
 
 if __name__ == "__main__":
 	#print(aprs_password("BI1FQO"))
