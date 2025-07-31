@@ -10,11 +10,12 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import FileResponse
 from datetime import datetime
-from utils.aprs_report import aprs_report
-from utils.responses import fixed_json_response, chunked_response
 from ses_service import ses_server
 import threading
 import uuid
+from utils.aprs_report import aprs_report
+from utils.responses import fixed_json_response, chunked_response
+from utils import data_memory_cache
 
 app = FastAPI()
 
@@ -26,9 +27,15 @@ templates = Jinja2Templates(directory="templates")
 
 
 @app.on_event("startup")
-def start_ses_server():
+def startup_tasks():
+    # 启动 SES 服务
     thread = threading.Thread(target=ses_server, daemon=True)
     thread.start()
+
+    # 启动缓存管理器
+    data_memory_cache.start_device_cache_manager()
+
+
 
 @app.post("/nrm/androidTask/checkDeviceSn")
 async def check_device_sn(request: Request):
@@ -43,22 +50,10 @@ async def check_device_sn(request: Request):
         device_id = None
 
     if device_id:
-        try:
-            if DEVICE_LOG_PATH.exists():
-                with DEVICE_LOG_PATH.open("r", encoding="utf-8") as f:
-                    registry = json.load(f)
-            else:
-                registry = {}
-    
-            existing = registry.get(device_id, {})
-            existing.update(req_data)  # 合并更新
-            registry[device_id] = existing
-    
-            with DEVICE_LOG_PATH.open("w", encoding="utf-8") as f:
-                json.dump(registry, f, indent=2, ensure_ascii=False)
-            print(f"[LOG] 记录设备 deviceId: {device_id}")
-        except Exception as e:
-            print(f"[ERROR] 记录失败: {e}")
+        existing = data_memory_cache.get_device_entry(device_id)
+        existing.update(req_data)
+        data_memory_cache.update_device_entry(device_id, existing)
+        print(f"[Cache] 更新设备 {device_id}")
 
     # 返回固定响应
     try:
@@ -93,26 +88,19 @@ async def chunked_ok_empty_data(request: Request):
         device_id = req_data.get("deviceId")
         device_info_raw = req_data.get("deviceInfo")
 
+        # 解析 deviceInfo（可能是字符串或对象）
         if isinstance(device_info_raw, str):
             device_info = json.loads(device_info_raw)
         else:
             device_info = device_info_raw or {}
 
-        # 记录 deviceInfo 到本地 JSON 文件
+        # 使用内存缓存
         if device_id:
-            if DEVICE_LOG_PATH.exists():
-                with DEVICE_LOG_PATH.open("r", encoding="utf-8") as f:
-                    device_registry = json.load(f)
-            else:
-                device_registry = {}
-        
-            entry = device_registry.get(device_id, {})
+            entry = data_memory_cache.get_device_entry(device_id)
             entry["deviceId"] = device_id
             entry["deviceInfo"] = device_info  # 只更新 deviceInfo，保留其它字段
-            device_registry[device_id] = entry
-        
-            with DEVICE_LOG_PATH.open("w", encoding="utf-8") as f:
-                json.dump(device_registry, f, indent=2, ensure_ascii=False)
+            data_memory_cache.update_device_entry(device_id, entry)
+            print(f"[Cache] Updated deviceInfo for {device_id}")
 
     except Exception as e:
         print(f"[getDeviceInfoFromAndroid] Logging error: {e}")
@@ -162,35 +150,30 @@ async def uploadLocationInfo(request: Request):
     print("Body:", body.decode())
 
     try:
-        req_data = json.loads(body.decode())
+        req_data = json.loads((await request.body()).decode())
         device_id = req_data.get("deviceId")
+
+        if not device_id:
+            raise ValueError("缺少 deviceId")
+
         location_data = {
             "latitude": req_data.get("latitude"),
             "longitude": req_data.get("longitude"),
             "altitude": req_data.get("altitude"),
             "update_time": int(time.time())
         }
-        
-        if device_id:
-            if DEVICE_LOG_PATH.exists():
-                with DEVICE_LOG_PATH.open("r", encoding="utf-8") as f:
-                    device_registry = json.load(f)
-            else:
-                device_registry = {}
-        
-            entry = device_registry.get(device_id, {})
-            device_name=entry.get("deviceInfo",{}).get("wholeInfo",{}).get("alias","")
-            issiRadioId=entry.get("deviceInfo",{}).get("nbInfo",{}).get("issiRadioId","")
-            aprs_ssid=aprs_report(location_data["latitude"], location_data["longitude"], device_name, issiRadioId, device_id)
-            # 仅更新 location 和 update_time，保留其他字段
-            entry.setdefault("deviceId", device_id)
-            entry["location"] = location_data
-            entry["location"]["aprs_ssid"]=aprs_ssid
-            device_registry[device_id] = entry
 
-            with DEVICE_LOG_PATH.open("w", encoding="utf-8") as f:
-                json.dump(device_registry, f, indent=2, ensure_ascii=False)
-        #APRS上报
+        entry = data_memory_cache.get_device_entry(device_id)
+        device_name = entry.get("deviceInfo", {}).get("wholeInfo", {}).get("alias", "")
+        issiRadioId = entry.get("deviceInfo", {}).get("nbInfo", {}).get("issiRadioId", "")
+        aprs_ssid = aprs_report(location_data["latitude"], location_data["longitude"], device_name, issiRadioId, device_id)
+
+        entry.setdefault("deviceId", device_id)
+        entry["location"] = location_data
+        entry["location"]["aprs_ssid"] = aprs_ssid
+        data_memory_cache.update_device_entry(device_id, entry)
+        print(f"[Cache] 上报位置 {device_id}")
+
         
     except Exception as e:
         print(f"[uploadLocationInfo] Logging error: {e}")
