@@ -47,10 +47,13 @@
 
             {% if entry.location %}
               <p>
-                Location Time: {{ entry.location.update_time }}<br>
-                Delay: {{ now - entry.location.update_time }} seconds<br>
+                Update Time: {{ entry.location.update_time }}<br>
+                Last Update Location {{ now - entry.location.update_time }} seconds before<br>
                 <a href="https://www.google.com/maps?q={{ entry.location.latitude }},{{ entry.location.longitude }}" target="_blank">
                   View on Google Maps
+                </a>
+                <a href="https://aprs.fi/#!call=a%2F{{ entry.location.aprs_ssid }}" target="_blank">
+                  View on APRS
                 </a>
               </p>
             {% endif %}
