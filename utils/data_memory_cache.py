@@ -4,7 +4,7 @@ import time
 from pathlib import Path
 import copy
 
-DEVICE_LOG_PATH = Path("static/device_registry_data.json")
+DEVICE_LOG_PATH = Path("static/device_data.json")
 
 # 全局缓存与锁
 _device_cache = {}
