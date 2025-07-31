@@ -140,4 +140,4 @@ def aprs_report(lat_input, lon_input, device_name, issiRadioId, device_id):
 
 if __name__ == "__main__":
 	#print(aprs_password("BI1FQO"))
-	aprs_report("-23.56729", "-46.65940", "device_name", "4606666", "423")
+	aprs_report("-23.56729", "-46.65940", "device_name", "4606666", "428")
