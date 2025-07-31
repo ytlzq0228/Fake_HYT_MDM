@@ -13,7 +13,7 @@
             <h2>{{ entry.deviceInfo.wholeInfo.alias if entry.deviceInfo and entry.deviceInfo.wholeInfo else device_id }}</h2>
             <p><strong>Device ID:</strong> {{ device_id }}</p>
             <p><strong>Model:</strong> {{ entry.modelName or "N/A" }}</p>
-            <p><strong>SN:</strong> {{ entry.sn or "N/A" }}</p>
+            <!--<p><strong>SN:</strong> {{ entry.sn or "N/A" }}</p>-->
             <p><strong>Version:</strong> {{ entry.versionCode or "N/A" }}</p>
 
             {% if entry.deviceInfo %}
@@ -65,7 +65,7 @@
 
             {% if entry.location %}
               <p>
-                Update Time: {{ entry.location.update_time }}<br>
+                Location: {{ entry.location.latitude }},{{ entry.location.longitude }}<br>
                 Last Update Location {{ now - entry.location.update_time }} seconds before<br>
                 <a href="https://www.google.com/maps?q={{ entry.location.latitude }},{{ entry.location.longitude }}" target="_blank">
                   View on Google Maps
@@ -75,6 +75,27 @@
                   {{ entry.location.aprs_ssid }}
                 </a><br>
               </p>
+              <p>Debug: {{ entry.location.latitude }} , {{ entry.location.longitude }}</p>
+              {% set lat = entry.location.latitude | float %}
+              {% set lon = entry.location.longitude | float %}
+              {% set dx = 0.01 %}
+              {% set dy = 0.01 %}
+              <iframe
+                width="100%"
+                height="300"
+                frameborder="0"
+                scrolling="no"
+                marginheight="0"
+                marginwidth="0"
+                style="border: 1px solid #ccc; border-radius: 8px;"
+                src="https://www.openstreetmap.org/export/embed.html?bbox={{ lon - dx }}%2C{{ lat - dy }}%2C{{ lon + dx }}%2C{{ lat + dy }}&layer=mapnik&marker={{ lat }}%2C            {{ lon }}">
+              </iframe>
+              <br/>
+              <small>
+                <a href="https://www.openstreetmap.org/?mlat={{ entry.location.latitude }}&mlon={{ entry.location.longitude }}#map=15/{{ entry.location.latitude }}/{{ entry.location.longitude }}" target="_blank">
+                  在 OpenStreetMap 上查看大图
+                </a>
+              </small>
             {% endif %}
         </div>
         {% endfor %}
