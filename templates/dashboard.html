@@ -14,7 +14,7 @@
             {% set last_update = now - entry.update_time %}
             <p>
               {% if last_update > 600 %}
-                <strong>Last Update:</strong> {{ last_update }}s ago — <span style="color: red;">Offline</span>
+                <strong>Last Update:</strong> <span style="color: red; font-weight: bold;">Offline</span>
               {% else %}
                 <strong>Last Update:</strong> <span style="color: green; font-weight: bold;">{{ last_update }}s ago — Online</span>
               {% endif %}
