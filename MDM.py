@@ -200,7 +200,7 @@ async def dashboard(request: Request):
     current_time = int(time.time())
     for i in devices:
         if "update_time" not in devices[i]:
-            devices[i]["update_time"]=0
+            devices[i]["update_time"]=devices[i]["location"]["update_time"]
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
         "devices": devices,
