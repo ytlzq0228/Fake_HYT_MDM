@@ -53,17 +53,17 @@
                     <label>
                         Battery Level ({{ whole.batteryLevel }}%)
                         {% if whole.batteryStatus == 5 %}
-                            - FULL-5
+                            FULL-5
                         {% elif whole.batteryStatus == 4 %}
-                            - Charging-4
+                            Charging-4
                         {% elif whole.batteryStatus == 3 %}
-                            - Not Charge-3
+                            Not Charge-3
                         {% elif whole.batteryStatus == 2 %}
                             <span style="background-color: green; color: white; font-weight: bold; padding: 2px 6px; border-radius: 4px;">
-                            - Charging-2
+                            Charging
                             </span>
                         {% else %}
-                            - STATUS {{whole.batteryStatus}}
+                            STATUS {{whole.batteryStatus}}
                         {% endif %}
                     </label>
                     <progress value="{{ whole.batteryLevel }}" max="100"></progress>
