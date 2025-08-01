@@ -88,6 +88,7 @@ async def chunked_ok_empty_data(request: Request):
     try:
         body = await request.body()
         req_data = json.loads(body.decode())
+        req_data["update_time"]= int(time.time())
         device_id = req_data.get("deviceId")
         device_info_raw = req_data.get("deviceInfo")
 
