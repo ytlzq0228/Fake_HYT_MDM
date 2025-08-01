@@ -168,6 +168,7 @@ async def uploadLocationInfo(request: Request):
         }
 
         entry = data_memory_cache.get_device_entry(device_id)
+
         device_name = entry.get("deviceInfo", {}).get("wholeInfo", {}).get("alias", "")
         issiRadioId = entry.get("deviceInfo", {}).get("nbInfo", {}).get("issiRadioId", "")
         aprs_ssid = aprs_report(location_data["latitude"], location_data["longitude"], device_name, issiRadioId, device_id)
@@ -175,6 +176,7 @@ async def uploadLocationInfo(request: Request):
         entry.setdefault("deviceId", device_id)
         entry["location"] = location_data
         entry["location"]["aprs_ssid"] = aprs_ssid
+        entry["update_time"]= int(time.time())
         data_memory_cache.update_device_entry(device_id, entry)
         print(f"[Cache] 上报位置 {device_id}")
 
