@@ -26,13 +26,13 @@
           {% endif %}
         </p>
             <p><strong>Device ID:</strong> {{ device_id }}</p>
-            <p><strong>Model:</strong> {{ entry.modelName or "N/A" }}</p>
+            
             <p><strong>Version:</strong> {{ entry.versionCode or "N/A" }}</p>
 
             {% if entry.deviceInfo %}
                 {% set bb = entry.deviceInfo.bbInfo %}
                 {% set whole = entry.deviceInfo.wholeInfo %}
-
+                <p><strong>Model:</strong> {{ whole.modelName or "N/A" }}</p>
                 <p><strong>Android:</strong> {{ bb.androidVersion }}</p>
                 <p><strong>CPU:</strong> {{ bb.cpuModel }}</p>
                 <p><strong>IP:</strong> {{ bb.ip }}</p>
