@@ -199,7 +199,7 @@ async def dashboard(request: Request):
     devices = data_memory_cache.get_device_cache()
     current_time = int(time.time())
     for i in devices:
-        if not i["update_time"]:
+        if update_time not in devices[i]:
             devices[i]["update_time"]=0
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
