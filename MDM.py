@@ -45,6 +45,7 @@ async def check_device_sn(request: Request):
     try:
         body = await request.body()
         req_data = json.loads(body.decode())
+        req_data["update_time"]= int(time.time())
         device_id = req_data.get("deviceId")
     except Exception as e:
         print(f"[WARN] 无法解析请求体: {e}")

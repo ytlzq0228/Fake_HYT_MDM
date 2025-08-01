@@ -11,6 +11,7 @@
         {% for device_id, entry in devices.items() %}
         <div class="device-card">
             <h2>{{ entry.deviceInfo.wholeInfo.alias if entry.deviceInfo and entry.deviceInfo.wholeInfo else device_id }}</h2>
+            Last Update {{ now - entry.location.update_time }} seconds before<br>
             <p><strong>Device ID:</strong> {{ device_id }}</p>
             <p><strong>Model:</strong> {{ entry.modelName or "N/A" }}</p>
             <!--<p><strong>SN:</strong> {{ entry.sn or "N/A" }}</p>-->
@@ -87,7 +88,7 @@
                 marginheight="0"
                 marginwidth="0"
                 style="border: 1px solid #ccc; border-radius: 8px;"
-                src="https://www.openstreetmap.org/export/embed.html?bbox={{ lon - dx }}%2C{{ lat - dy }}%2C{{ lon + dx }}%2C{{ lat + dy }}&layer=mapnik&marker={{ lat }}%2C            {{ lon }}">
+                src="https://www.openstreetmap.org/export/embed.html?bbox={{ lon - dx }}%2C{{ lat - dy }}%2C{{ lon + dx }}%2C{{ lat + dy }}&layer=mapnik&marker={{ lat }}%2C{{ lon }}">
               </iframe>
               <br/>
               <small>
