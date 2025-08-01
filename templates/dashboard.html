@@ -11,14 +11,20 @@
         {% for device_id, entry in devices.items() %}
         <div class="device-card">
             <h2>{{ entry.deviceInfo.wholeInfo.alias if entry.deviceInfo and entry.deviceInfo.wholeInfo else device_id }}</h2>
-            {% set last_update = now - entry.update_time %}
-            <p>
-              {% if last_update > 600 %}
-                <strong>Last Update:</strong> <span style="color: red; font-weight: bold;">{{ last_update }}s ago — Offline</span>
-              {% else %}
-                <strong>Last Update:</strong> <span style="color: green; font-weight: bold;">{{ last_update }}s ago — Online</span>
-              {% endif %}
-            </p>
+{% set last_update = now - entry.update_time %}
+<p>
+  {% if last_update > 600 %}
+    <strong>Last Update:</strong>
+    <span style="background-color: red; color: white; font-weight: bold; padding: 2px 6px; border-radius: 4px;">
+      {{ last_update }}s ago — Offline
+    </span>
+  {% else %}
+    <strong>Last Update:</strong>
+    <span style="background-color: green; color: white; font-weight: bold; padding: 2px 6px; border-radius: 4px;">
+      {{ last_update }}s ago — Online
+    </span>
+  {% endif %}
+</p>
             <p><strong>Device ID:</strong> {{ device_id }}</p>
             <p><strong>Model:</strong> {{ entry.modelName or "N/A" }}</p>
             <!--<p><strong>SN:</strong> {{ entry.sn or "N/A" }}</p>-->
