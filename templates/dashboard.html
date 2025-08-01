@@ -52,13 +52,15 @@
                     <label>
                         Battery Level ({{ whole.batteryLevel }}%)
                         {% if whole.batteryStatus == 5 %}
-                            FULL-5
+                            <span style="background-color: green; color: white; font-weight: bold; padding: 2px 6px; border-radius: 4px;">
+                            FULL
+                            </span>
                         {% elif whole.batteryStatus == 4 %}
                             Charging-4
                         {% elif whole.batteryStatus == 3 %}
                             Not Charge-3
                         {% elif whole.batteryStatus == 2 %}
-                            <span style="background-color: green; color: white; font-weight: bold; padding: 2px 6px; border-radius: 4px;">
+                            <span style="background-color: blue; color: white; font-weight: bold; padding: 2px 6px; border-radius: 4px;">
                             Charging
                             </span>
                         {% else %}
