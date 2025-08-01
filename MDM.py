@@ -195,11 +195,12 @@ async def default_image():
     return FileResponse(image_path, media_type="image/jpeg")
 
 @app.get("/dashboard", response_class=HTMLResponse)
-@app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request):
     devices = data_memory_cache.get_device_cache()
     current_time = int(time.time())
-
+    for i in devices:
+        if not i["update_time"]:
+            devices[i]["update_time"]=0
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
         "devices": devices,
