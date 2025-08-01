@@ -11,7 +11,7 @@
         {% for device_id, entry in devices.items() %}
         <div class="device-card">
             <h2>{{ entry.deviceInfo.wholeInfo.alias if entry.deviceInfo and entry.deviceInfo.wholeInfo else device_id }}</h2>
-            Last Update {{ now - entry.update_time }} seconds before<br>
+            <p>Last Update {{ now - entry.update_time }} seconds before</p><br>
             <p><strong>Device ID:</strong> {{ device_id }}</p>
             <p><strong>Model:</strong> {{ entry.modelName or "N/A" }}</p>
             <!--<p><strong>SN:</strong> {{ entry.sn or "N/A" }}</p>-->
