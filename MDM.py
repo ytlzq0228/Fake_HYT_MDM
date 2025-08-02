@@ -4,8 +4,8 @@ from email.utils import formatdate
 import json
 from pathlib import Path
 import time
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse,PlainTextResponse
+from fastapi import FastAPI, Request, Query
+from fastapi.responses import HTMLResponse,PlainTextResponse,JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import FileResponse
@@ -209,6 +209,42 @@ async def dashboard(request: Request):
         "devices": devices,
         "now": current_time
     })
+
+@app.get("/device", response_class=HTMLResponse)
+async def view_device(request: Request, deviceid: str = Query(...)):
+    entry = data_memory_cache.get_device_entry(deviceid)
+    devicename=entry["deviceInfo"]["wholeInfo"]["alias"]
+
+    if not entry:
+        return HTMLResponse(f"<h2>设备 {deviceid} 不存在</h2>", status_code=404)
+
+    if "sn" not in entry:
+        return HTMLResponse(f"<h2>设备 {deviceid} 没有 SN 信息，无法验证</h2>", status_code=400)
+
+    return templates.TemplateResponse("device_verify.html", {
+        "request": request,
+        "deviceid": deviceid,
+        "devicename": devicename,
+        "sn": entry["sn"]
+    })
+
+
+
+@app.get("/device/deviceinfo", response_class=HTMLResponse)
+async def verify_device_sn(deviceid: str = Query(...), sn: str = Query(...)):
+    entry = data_memory_cache.get_device_entry(deviceid)
+    if not entry:
+        return HTMLResponse("<h3>设备不存在</h3>", status_code=404)
+
+    real_sn = entry.get("sn")
+    if sn != real_sn:
+        return HTMLResponse("<h3>SN 校验失败</h3>", status_code=403)
+
+    return PlainTextResponse(
+        json.dumps(entry, indent=2, ensure_ascii=False),
+        media_type="application/json"
+    )
+
 
 @app.api_route("/{full_path:path}", methods=["GET", "POST", "PUT", "DELETE"])
 async def catch_all(request: Request, full_path: str):

@@ -10,7 +10,11 @@
     <div class="device-grid">
         {% for device_id, entry in devices.items() %}
         <div class="device-card">
-            <h2>{{ entry.deviceInfo.wholeInfo.alias if entry.deviceInfo and entry.deviceInfo.wholeInfo else device_id }}</h2>
+           <h2>
+             <a href="/device?deviceid={{ device_id }}" style="text-decoration: none; color: inherit;">
+               {{ entry.deviceInfo.wholeInfo.alias if entry.deviceInfo and entry.deviceInfo.wholeInfo else device_id }}
+             </a>
+           </h2>
         {% set last_update = now - entry.update_time %}
         <p>
           {% if last_update > 600 %}

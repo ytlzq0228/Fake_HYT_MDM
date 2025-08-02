@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SN 验证</title>
+</head>
+<body>
+    <h2>设备详细信息包含敏感内容，请机主本人验证SN序列号</h2>
+    <label>验证设备 {{ deviceid }}</label></p>
+    <label>设备别名 {{ devicename }}</label></p>
+    <form action="/device/deviceinfo" method="get">
+        <input type="hidden" name="deviceid" value="{{ deviceid }}">
+        <label for="sn">SN:</label>
+        <input type="text" id="sn" name="sn" required>
+        <button type="submit">验证并查看设备信息</button>
+    </form>
+    <p>验证成功后将返回设备 JSON 信息</p>
+</body>
+</html>
