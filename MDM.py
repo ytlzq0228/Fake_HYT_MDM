@@ -159,7 +159,7 @@ async def uploadLocationInfo(request: Request):
 
         if not device_id:
             raise ValueError("缺少 deviceId")
-        if int(req_data.get("latitude"))==0 and int(req_data.get("longitude"))==0:
+        if float(req_data.get("latitude"))==0 and float(req_data.get("longitude"))==0:
             raise ValueError("无效的经纬度")
         location_data = {
             "latitude": req_data.get("latitude"),
