@@ -20,6 +20,7 @@ def load_device_cache():
                 with DEVICE_LOG_PATH.open("r", encoding="utf-8") as f:
                     _device_cache = json.load(f)
                     print(f"[Cache] Loaded {len(_device_cache)} records from file")
+            
             except Exception as e:
                 print(f"[Cache] Failed to load from file: {e}")
         else:

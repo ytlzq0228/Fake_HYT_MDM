@@ -12,6 +12,7 @@
     <h1>Registered Devices</h1>
     <div class="device-grid">
         {% for device_id, entry in devices.items() %}
+        {% if entry.deviceInfo %}
         <div class="device-card">
            <h2>
              <a href="/device?deviceid={{ device_id }}" style="text-decoration: none; color: inherit;">
@@ -145,7 +146,9 @@
               </small>
             {% endif %}
         </div>
+        {% endif %}
         {% endfor %}
+
     </div>
 </body>
 </html>
