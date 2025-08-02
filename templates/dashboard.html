@@ -20,7 +20,7 @@
             <!-- 标题超链接 -->
             <h2>
                 <a href="/device?deviceid={{ device_id }}" style="text-decoration: none; color: inherit;">
-                    {{ entry.deviceInfo.wholeInfo.alias if entry.deviceInfo.wholeInfo else device_id }}
+                    {{ entry.deviceInfo.wholeInfo.alias if entry.deviceInfo.wholeInfo and entry.deviceInfo.wholeInfo.alias else device_id }}
                 </a>
             </h2>
 
