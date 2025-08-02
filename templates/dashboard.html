@@ -6,149 +6,123 @@
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
+    <!-- 右上角二维码 -->
     <div style="position: absolute; top: 5px; right: 5px;">
         <img src="/static/QRCODE_2232.png" alt="QR Code" style="width: 70px; height: auto;">
     </div>
+
     <h1>Registered Devices</h1>
+
     <div class="device-grid">
         {% for device_id, entry in devices.items() %}
         {% if entry.deviceInfo %}
         <div class="device-card">
-           <h2>
-             <a href="/device?deviceid={{ device_id }}" style="text-decoration: none; color: inherit;">
-               {{ entry.deviceInfo.wholeInfo.alias if entry.deviceInfo and entry.deviceInfo.wholeInfo else device_id }}
-             </a>
-           </h2>
-        {% set last_update = now - entry.update_time %}
-        <p>
-          {% if last_update > 600 %}
-            <strong>Last Update:</strong>
-            <span style="background-color: red; color: white; font-weight: bold; padding: 2px 6px; border-radius: 4px;">
-              {{ last_update }}s ago — Offline
-            </span>
-          {% else %}
-            <strong>Last Update:</strong>
-            <span style="background-color: green; color: white; font-weight: bold; padding: 2px 6px; border-radius: 4px;">
-              {{ last_update }}s ago — Online
-            </span>
-          {% endif %}
-        </p>
+            <!-- 标题超链接 -->
+            <h2>
+                <a href="/device?deviceid={{ device_id }}" style="text-decoration: none; color: inherit;">
+                    {{ entry.deviceInfo.wholeInfo.alias if entry.deviceInfo.wholeInfo else device_id }}
+                </a>
+            </h2>
+
+            <!-- 上报时间 -->
+            {% set last_update = now - entry.update_time %}
+            <p>
+                <strong>Last Update:</strong>
+                <span style="background-color: {{ 'green' if last_update <= 600 else 'red' }}; color: white; font-weight: bold; padding: 2px 6px; border-radius: 4px;">
+                    {{ last_update }}s ago — {{ 'Online' if last_update <= 600 else 'Offline' }}
+                </span>
+            </p>
+
             <p><strong>Device ID:</strong> {{ device_id }}</p>
-            
             <p><strong>Version:</strong> {{ entry.versionCode or "N/A" }}</p>
 
-            {% if entry.deviceInfo %}
-                {% set bb = entry.deviceInfo.get("bbInfo", {}) %}
-                {% set whole = entry.deviceInfo.get("wholeInfo", {}) %}
-                
-                {% if whole %}
-                <p><strong>Model:</strong> {{ whole.modelName or "N/A" }}</p>
-                {% endif %}
+            {% set bb = entry.deviceInfo.get("bbInfo", {}) %}
+            {% set whole = entry.deviceInfo.get("wholeInfo", {}) %}
 
-                {% if bb %}
-                <p><strong>Android:</strong> {{ bb.androidVersion }}</p>
-                <p><strong>CPU:</strong> {{ bb.cpuModel }}</p>
-                <p><strong>IP:</strong> {{ bb.ip }}</p>
-                <p><strong>MAC:</strong> {{ bb.mac }}</p>
+            {% if whole.modelName %}<p><strong>Model:</strong> {{ whole.modelName }}</p>{% endif %}
+            {% if bb.androidVersion %}<p><strong>Android:</strong> {{ bb.androidVersion }}</p>{% endif %}
+            {% if bb.cpuModel %}<p><strong>CPU:</strong> {{ bb.cpuModel }}</p>{% endif %}
+            {% if bb.ip %}<p><strong>IP:</strong> {{ bb.ip }}</p>{% endif %}
+            {% if bb.mac %}<p><strong>MAC:</strong> {{ bb.mac }}</p>{% endif %}
 
-                <div class="bar-group">
-                    <label>RAM Usage ({{ bb.ramUsage }} / {{ bb.ramTotal }} MB)</label>
-                    <progress value="{{ bb.ramUsage }}" max="{{ bb.ramTotal }}"></progress>
-                </div>
-
-                <div class="bar-group">
-                    <label>ROM Usage ({{ bb.romUsage }} / {{ bb.romTotal }} MB)</label>
-                    <progress value="{{ bb.romUsage }}" max="{{ bb.romTotal }}"></progress>
-                </div>
-                {% endif %}
-
-                {% if whole.batteryHealth %}
-                <div class="bar-group">
-                    <label>
-                        Battery Level ({{ whole.batteryLevel }}%)
-                        {% if whole.batteryStatus == 5 %}
-                            <span style="background-color: green; color: white; font-weight: bold; padding: 2px 6px; border-radius: 4px;">
-                            FULL
-                            </span>
-                        {% elif whole.batteryStatus == 4 %}
-                            Charging-4
-                        {% elif whole.batteryStatus == 3 %}
-                            <span style="background-color: skyblue; color: white; font-weight: bold; padding: 2px 6px; border-radius: 4px;">
-                            Battery in Use
-                            </span>
-                        {% elif whole.batteryStatus == 2 %}
-                            <span style="background-color: lightgreen; color: white; font-weight: bold; padding: 2px 6px; border-radius: 4px;">
-                            Charging
-                            </span>
-                        {% else %}
-                            STATUS {{whole.batteryStatus}}
-                        {% endif %}
-                    </label>
-                    <progress value="{{ whole.batteryLevel }}" max="100"></progress>
-                </div>
-
-
-                <p>
-                  <strong>Battery Cycle:</strong>
-                  <span style="color: green; font-weight: bold;">
-                    {{ whole.batteryChargeTimes }}
-                  </span>
-                
-                  <strong>Battery Health:</strong>
-                  {% if whole.batteryHealth < 80 %}
-                    <span style="color: red; font-weight: bold;">
-                      {{ whole.batteryHealth }}%
-                    </span>
-                  {% else %}
-                    <span style="color: green; font-weight: bold;">
-                      {{ whole.batteryHealth }}%
-                    </span>
-                  {% endif %}
-                </p>
-                {% endif %}
-
-                {% if whole %}
-                <p><strong>4G Signal:</strong> {{ bb.signalLevel }} dBm</p>
-                {% endif %}
+            {% if bb.ramUsage and bb.ramTotal %}
+            <div class="bar-group">
+                <label>RAM Usage ({{ bb.ramUsage }} / {{ bb.ramTotal }} MB)</label>
+                <progress value="{{ bb.ramUsage }}" max="{{ bb.ramTotal }}"></progress>
+            </div>
             {% endif %}
 
+            {% if bb.romUsage and bb.romTotal %}
+            <div class="bar-group">
+                <label>ROM Usage ({{ bb.romUsage }} / {{ bb.romTotal }} MB)</label>
+                <progress value="{{ bb.romUsage }}" max="{{ bb.romTotal }}"></progress>
+            </div>
+            {% endif %}
+
+            {% if whole.batteryHealth %}
+            <div class="bar-group">
+                <label>
+                    Battery Level ({{ whole.batteryLevel }}%)
+                    {% if whole.batteryStatus == 5 %}
+                        <span style="background-color: green; color: white; font-weight: bold; padding: 2px 6px; border-radius: 4px;">FULL</span>
+                    {% elif whole.batteryStatus == 4 %}
+                        Charging-4
+                    {% elif whole.batteryStatus == 3 %}
+                        <span style="background-color: skyblue; color: white; font-weight: bold; padding: 2px 6px; border-radius: 4px;">Battery in Use</span>
+                    {% elif whole.batteryStatus == 2 %}
+                        <span style="background-color: lightgreen; color: white; font-weight: bold; padding: 2px 6px; border-radius: 4px;">Charging</span>
+                    {% else %}
+                        STATUS {{ whole.batteryStatus }}
+                    {% endif %}
+                </label>
+                <progress value="{{ whole.batteryLevel }}" max="100"></progress>
+            </div>
+
+            <p>
+                <strong>Battery Cycle:</strong>
+                <span style="color: green; font-weight: bold;">{{ whole.batteryChargeTimes }}</span>
+
+                <strong>Battery Health:</strong>
+                <span style="color: {{ 'red' if whole.batteryHealth < 80 else 'green' }}; font-weight: bold;">
+                    {{ whole.batteryHealth }}%
+                </span>
+            </p>
+            {% endif %}
+
+            {% if bb.signalLevel %}<p><strong>4G Signal:</strong> {{ bb.signalLevel }} dBm</p>{% endif %}
+
             {% if entry.location %}
-              <p>
-                <strong>Location: </strong> {{ entry.location.latitude }},{{ entry.location.longitude }}<br>
-                <strong>Last Update Location: </strong>{{ now - entry.location.update_time }}s ago<br>
+            <p>
+                <strong>Location:</strong> {{ entry.location.latitude }}, {{ entry.location.longitude }}<br>
+                <strong>Last Location Update:</strong> {{ now - entry.location.update_time }}s ago<br>
                 <a href="https://www.google.com/maps?q={{ entry.location.latitude }},{{ entry.location.longitude }}" target="_blank">
-                  <strong>View on Google Maps</strong>
+                    <strong>View on Google Maps</strong>
                 </a><br>
-                APRS SSID: 
+                APRS SSID:
                 <a href="https://aprs.fi/#!call=a%2F{{ entry.location.aprs_ssid }}" target="_blank">
-                  <strong>{{ entry.location.aprs_ssid }}</strong>
-                </a><br>
-              </p>
-              {% set lat = entry.location.latitude | float %}
-              {% set lon = entry.location.longitude | float %}
-              {% set dx = 5 %}
-              {% set dy = 5 %}
-              <iframe
-                width="100%"
-                height="300"
-                frameborder="0"
-                scrolling="no"
-                marginheight="0"
-                marginwidth="0"
+                    <strong>{{ entry.location.aprs_ssid }}</strong>
+                </a>
+            </p>
+
+            {% set lat = entry.location.latitude | float %}
+            {% set lon = entry.location.longitude | float %}
+            {% set dx = 5 %}
+            {% set dy = 5 %}
+            <iframe
+                width="100%" height="300" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"
                 style="border: 1px solid #ccc; border-radius: 8px;"
                 src="https://www.openstreetmap.org/export/embed.html?bbox={{ lon - dx }}%2C{{ lat - dy }}%2C{{ lon + dx }}%2C{{ lat + dy }}&layer=mapnik&marker={{ lat }}%2C{{ lon }}">
-              </iframe>
-              <br/>
-              <small>
-                <a href="https://www.openstreetmap.org/?mlat={{ entry.location.latitude }}&mlon={{ entry.location.longitude }}#map=15/{{ entry.location.latitude }}/{{ entry.location.longitude }}" target="_blank">
-                  在 OpenStreetMap 上查看大图
+            </iframe>
+            <br>
+            <small>
+                <a href="https://www.openstreetmap.org/?mlat={{ lat }}&mlon={{ lon }}#map=15/{{ lat }}/{{ lon }}" target="_blank">
+                    在 OpenStreetMap 上查看大图
                 </a>
-              </small>
+            </small>
             {% endif %}
         </div>
         {% endif %}
         {% endfor %}
-
     </div>
 </body>
 </html>
