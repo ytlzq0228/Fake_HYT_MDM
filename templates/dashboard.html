@@ -37,9 +37,14 @@
             <p><strong>Version:</strong> {{ entry.versionCode or "N/A" }}</p>
 
             {% if entry.deviceInfo %}
-                {% set bb = entry.deviceInfo.bbInfo %}
-                {% set whole = entry.deviceInfo.wholeInfo %}
+                {% set bb = entry.deviceInfo.get("bbInfo", {}) %}
+                {% set whole = entry.deviceInfo.get("wholeInfo", {}) %}
+                
+                {% if whole %}
                 <p><strong>Model:</strong> {{ whole.modelName or "N/A" }}</p>
+                {% endif %}
+
+                {% if bb %}
                 <p><strong>Android:</strong> {{ bb.androidVersion }}</p>
                 <p><strong>CPU:</strong> {{ bb.cpuModel }}</p>
                 <p><strong>IP:</strong> {{ bb.ip }}</p>
@@ -54,7 +59,9 @@
                     <label>ROM Usage ({{ bb.romUsage }} / {{ bb.romTotal }} MB)</label>
                     <progress value="{{ bb.romUsage }}" max="{{ bb.romTotal }}"></progress>
                 </div>
+                {% endif %}
 
+                {% if whole %}
                 <div class="bar-group">
                     <label>
                         Battery Level ({{ whole.batteryLevel }}%)
@@ -79,6 +86,7 @@
                     <progress value="{{ whole.batteryLevel }}" max="100"></progress>
                 </div>
 
+
                 <p>
                   <strong>Battery Cycle:</strong>
                   <span style="color: green; font-weight: bold;">
@@ -96,8 +104,11 @@
                     </span>
                   {% endif %}
                 </p>
+                {% endif %}
 
+                {% if whole %}
                 <p><strong>4G Signal:</strong> {{ bb.signalLevel }} dBm</p>
+                {% endif %}
             {% endif %}
 
             {% if entry.location %}
