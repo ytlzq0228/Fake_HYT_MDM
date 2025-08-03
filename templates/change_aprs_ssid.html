@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>更改 APRS SSID</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="form-container">
+        <h2>更改设备 <span style="color: #007acc">{{ device_id }}</span> 的 APRS SSID</h2>
+<form method="post" action="/change_aprs_ssid" class="styled-form">
+    <input type="hidden" name="device_id" value="{{ device_id }}">
+
+    <div class="form-group">
+        <label for="sn">SN 验证:</label></p>
+        <input type="text" name="sn" id="sn" required>
+    </div></p>
+
+    <div class="form-group">
+        <label for="aprs_ssid">新的 APRS SSID:</label></p>
+        <input type="text" name="aprs_ssid" id="aprs_ssid" required>
+    </div></p>
+    <label for="aprs_ssid">支持1-2位SSID后缀，格式为呼号-X或者-XX。例如BI1FQO-M或-MB:</label></p>
+    <button type="submit">提交修改</button>
+</form>
+    </div>
+</body>
+</html>
