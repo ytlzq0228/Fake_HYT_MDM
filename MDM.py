@@ -172,7 +172,7 @@ async def uploadLocationInfo(request: Request):
 
         device_name = entry.get("deviceInfo", {}).get("wholeInfo", {}).get("alias", "")
         issiRadioId = entry.get("deviceInfo", {}).get("nbInfo", {}).get("issiRadioId", "")
-        device_ssid = entry.get("deviceInfo", {}).get("location", {}).get("aprs_ssid", "")
+        device_ssid = entry.get("location", {}).get("aprs_ssid", "")
         device_ssid=aprs_report(location_data["latitude"], location_data["longitude"], device_name, issiRadioId, device_id, device_ssid)
 
         #entry.setdefault("deviceId", device_id)
