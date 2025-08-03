@@ -58,6 +58,32 @@ def build_response_9(user_name: str = "") -> dict:
         "msgContent": json.dumps(msg_content)
     }
 
+def build_response_9_data(user_name: str = "") -> dict:
+    command_uuid = get_cached_uuid()
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    content = {
+        "CommandUUID": command_uuid,
+        "body": {
+            "msgType": "read_frequencySilent",
+            "reExecuteTimes": 0,
+            "msgDate": now_str,
+            "RequestType": "backupData"
+        },
+        "type": "HyteraCommand"
+    }
+
+    msg_content = {
+        "UserName": user_name,
+        "content": json.dumps(content),
+        "fromName": "push",
+        "CommandUUID": command_uuid
+    }
+
+    return {
+        "msgType": 9,
+        "msgContent": json.dumps(msg_content)
+    }
 
 def handle_client(conn, addr):
     print(f"[+] Connection from {addr}")
@@ -85,6 +111,7 @@ def handle_client(conn, addr):
                 elif msg_type == 4:
                     # 发送第二条
                     conn.sendall((json.dumps(build_response_9(user_name=name)) + "\n").encode("utf-8"))
+                    #conn.sendall((json.dumps(build_response_9_data(user_name=name)) + "\n").encode("utf-8"))
                     print("[<] Sent msgType 9")
                 elif msg_type == 8:
                     print("[>] Received Command ACK Good!")

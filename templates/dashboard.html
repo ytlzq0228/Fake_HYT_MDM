@@ -98,10 +98,19 @@
                 <a href="https://www.google.com/maps?q={{ entry.location.latitude }},{{ entry.location.longitude }}" target="_blank">
                     <strong>View on Google Maps</strong>
                 </a><br>
-                APRS SSID:
-                <a href="https://aprs.fi/#!call=a%2F{{ entry.location.aprs_ssid }}" target="_blank">
-                    <strong>{{ entry.location.aprs_ssid }}</strong>
+            <p>
+              APRS SSID:
+              <a href="https://aprs.fi/#!call=a%2F{{ entry.location.aprs_ssid }}" target="_blank">
+                <strong>{{ entry.location.aprs_ssid }}</strong>
+              </a>
+            
+              
+              {% if device_id %}
+                <a href="/change_aprs_ssid?device_id={{ device_id }}" style="margin-left: 10px;">
+                  <button type="button">Change APRS SSID</button>
                 </a>
+              {% endif %}
+            </p>
             </p>
 
             {% set lat = entry.location.latitude | float %}

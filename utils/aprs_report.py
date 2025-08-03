@@ -40,15 +40,15 @@ def save_cache(cache: dict):
 		print(f"[!] 保存缓存失败: {e}")
 
 
-def get_CALLSIGN(dmr_id,device_id):
+def get_CALLSIGN(dmr_id):
 	cache = load_cache()
 	if dmr_id in cache:
 		print(f"来自缓存: {dmr_id}")
-		if "device_ssid" in cache[dmr_id]:
-			device_ssid=cache[dmr_id]["device_ssid"]
-		else:
-			device_ssid=device_ssid=f"{cache[dmr_id].get('callsign')}-H{device_id[-1]}"
-		return cache[dmr_id].get('callsign'),device_ssid
+		#if "device_ssid" in cache[dmr_id]:
+		#	device_ssid=cache[dmr_id]["device_ssid"]
+		#else:
+		#	device_ssid=device_ssid=f"{cache[dmr_id].get('callsign')}-H{device_id[-1]}"
+		return cache[dmr_id].get('callsign')
 	url = f"https://radioid.net/api/dmr/user?id={dmr_id}"
 	try:
 		response = requests.get(url, timeout=10)
@@ -69,9 +69,9 @@ def get_CALLSIGN(dmr_id,device_id):
 		print(f"  城市:	   {user_info.get('city')}")
 		print(f"  备注:   {user_info.get('remarks')}")
 		cache[dmr_id] = user_info
-		device_ssid=f"{user_info.get('callsign')}-H{device_id[-1]}"
+		#device_ssid=f"{user_info.get('callsign')}-H{device_id[-1]}"
 		save_cache(cache)
-		return user_info.get('callsign'),device_ssid
+		return user_info.get('callsign')
 	except requests.RequestException as e:
 		print(f"[!] HTTP error: {e}")
 	except ValueError as e:
@@ -98,10 +98,13 @@ def aprs_password(callsign: str) -> int:
     return hash_val & 0x7FFF  # 结果只保留 15 位（兼容传统实现）
 
 
-def aprs_report(lat_input, lon_input, device_name, issiRadioId, device_id):
-	device_ssid=""
+def aprs_report(lat_input, lon_input, device_name, issiRadioId, device_id, device_ssid=""):
 	try:
-		CALLSIGN,device_ssid=get_CALLSIGN(issiRadioId,device_id)
+		if device_ssid=="":
+			CALLSIGN=get_CALLSIGN(issiRadioId)
+			device_ssid=f"{CALLSIGN}-H{device_id[-1]}"
+		else:
+			CALLSIGN=device_ssid.split("-")[0]
 		APRS_PASSWORD=str(aprs_password(CALLSIGN))
 		print(f"issiRadioId:{issiRadioId},CALLSIGN:{CALLSIGN},APRS_PASSWORD:{APRS_PASSWORD}")
 		decimal_lat = float(lat_input)
@@ -119,7 +122,6 @@ def aprs_report(lat_input, lon_input, device_name, issiRadioId, device_id):
 		lat = f"{lat_degrees:02d}{lat_minutes:05.2f}"
 		lon = f"{lon_degrees:03d}{lon_minutes:05.2f}"
 
-		#device_ssid=f"{CALLSIGN}-H{device_id[-1]}"
 		print(f"device_ssid:{device_ssid}")
 		frame_text=(f'{device_ssid}>PYTHON,TCPIP*,qAC,{device_ssid}:!{lat}{lat_dir}/{lon}{lon_dir}{SSID_ICON}APRS by Hytera MDM from {device_name} report').encode()
 		callsign = CALLSIGN.encode('utf-8')

@@ -4,7 +4,7 @@ from email.utils import formatdate
 import json
 from pathlib import Path
 import time
-from fastapi import FastAPI, Request, Query
+from fastapi import FastAPI, Request, Query, Form
 from fastapi.responses import HTMLResponse,PlainTextResponse,JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -140,7 +140,7 @@ async def chunked_data_array(request: Request):
 @app.post("/nrm/androidTask/getAndroidCommand")
 async def chunked_data_null(request: Request):
     body = await request.body()
-    #print("Body:", body.decode())
+    print("Body:", body.decode())
     return chunked_response({
         "code": "0",
         "success": "true",
@@ -172,11 +172,12 @@ async def uploadLocationInfo(request: Request):
 
         device_name = entry.get("deviceInfo", {}).get("wholeInfo", {}).get("alias", "")
         issiRadioId = entry.get("deviceInfo", {}).get("nbInfo", {}).get("issiRadioId", "")
-        aprs_ssid = aprs_report(location_data["latitude"], location_data["longitude"], device_name, issiRadioId, device_id)
+        device_ssid = entry.get("deviceInfo", {}).get("location", {}).get("aprs_ssid", "")
+        device_ssid=aprs_report(location_data["latitude"], location_data["longitude"], device_name, issiRadioId, device_id, device_ssid)
 
-        entry.setdefault("deviceId", device_id)
+        #entry.setdefault("deviceId", device_id)
         entry["location"] = location_data
-        entry["location"]["aprs_ssid"] = aprs_ssid
+        entry["location"]["aprs_ssid"] = device_ssid
         entry["update_time"]= int(time.time())
         data_memory_cache.update_device_entry(device_id, entry)
         print(f"[Cache] 上报位置 {device_id}")
@@ -247,6 +248,53 @@ async def verify_device_sn(deviceid: str = Query(...), sn: str = Query(...)):
     )
 
 
+@app.get("/change_aprs_ssid", response_class=HTMLResponse)
+async def change_aprs_ssid_form(request: Request, device_id: str = Query(...)):
+    return templates.TemplateResponse("change_aprs_ssid.html", {
+        "request": request,
+        "device_id": device_id
+    })
+
+
+@app.post("/change_aprs_ssid", response_class=HTMLResponse)
+async def change_aprs_ssid_submit(
+    request: Request,
+    device_id: str = Form(...),
+    sn: str = Form(...),
+    aprs_ssid: str = Form(...)
+):
+    entry = data_memory_cache.get_device_entry(device_id)
+    if not entry:
+        return HTMLResponse("""
+            <h3>找不到设备</h3>
+            <button onclick="history.back()" style="margin-top: 10px;">返回</button>
+        """, status_code=404)
+
+    if sn != entry.get("sn"):
+        return HTMLResponse("""
+            <h3>SN 验证失败</h3>
+            <button onclick="history.back()" style="margin-top: 10px;">返回</button>
+        """, status_code=403)
+
+    try:
+        entry["location"]["aprs_ssid"] = aprs_ssid
+        data_memory_cache.update_device_entry(device_id, entry)
+        print(f"[Cache] 更新设备 {device_id}")
+    except Exception as e:
+        return HTMLResponse(f"""
+            <h3>更新失败: {e}</h3>
+            <button onclick="history.back()" style="margin-top: 10px;">返回</button>
+        """, status_code=500)
+
+
+    return HTMLResponse(f"""
+    <h3>APRS SSID 已更新为：{aprs_ssid}</h3>
+    <a href="/dashboard">
+        <button style="margin-top: 10px;">返回 Dashboard</button>
+    </a>
+""", status_code=200)
+
+
 @app.api_route("/{full_path:path}", methods=["GET", "POST", "PUT", "DELETE"])
 async def catch_all(request: Request, full_path: str):
     body = await request.body()
@@ -268,6 +316,7 @@ async def fallback(request: Request, unknown: str):
         "msg": "",
         "data": []
     })
+
 
 
 
