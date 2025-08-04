@@ -16,7 +16,7 @@ import uuid
 from utils.aprs_report import aprs_report
 from utils.responses import fixed_json_response, chunked_response
 from utils import data_memory_cache
-
+from typing import Optional
 
 app = FastAPI()
 
@@ -200,15 +200,25 @@ async def default_image():
     return FileResponse(image_path, media_type="image/jpeg")
 
 @app.get("/dashboard", response_class=HTMLResponse)
-async def dashboard(request: Request):
+async def dashboard(request: Request, filter_device: Optional[str] = None):
     devices = data_memory_cache.get_device_cache()
+    devices_all = data_memory_cache.get_device_cache()
     current_time = int(time.time())
     for i in devices:
         if "update_time" not in devices[i]:
             devices[i]["update_time"]=devices[i]["location"]["update_time"]
+
+        # 如果传入筛选设备ID，只保留该设备
+    if filter_device:
+        devices = {
+            k: v for k, v in devices.items()
+            if k == filter_device
+        }
+
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
         "devices": devices,
+        "devices_all": devices_all,
         "now": current_time
     })
 

@@ -11,10 +11,135 @@
         <img src="/static/QRCODE_2232.png" alt="QR Code" style="width: 70px; height: auto;">
     </div>
 
-    <h1>Registered Devices</h1>
+<div class="dashboard-header">
+    <h1>Registered Devices (Updated in 5 Days)</h1>
+    <form method="get" action="/dashboard" class="device-filter-form-inline">
+        <label for="filter_device">筛选设备:</label>
+        <select name="filter_device" onchange="this.form.submit()">
+            <option value="">-- 显示全部 --</option>
+            {% for device_id, entry in devices_all.items() %}
+                {% if entry.update_time is defined and entry.deviceInfo is defined and (now - entry.update_time) <= 432000 %}
+                    {% set alias = entry.deviceInfo.wholeInfo.alias if entry.deviceInfo and entry.deviceInfo.wholeInfo and entry.deviceInfo.wholeInfo.alias else device_id %}
+                    <option value="{{ device_id }}" {% if device_id == request.query_params.get('filter_device') %}selected{% endif %}>
+                        {{ alias }}
+                    </option>
+                {% endif %}
+            {% endfor %}
+        </select>
+    </form>
+</div>
 
+    {% if request.query_params.get('filter_device') %}
+    <!-- 单设备：两列展示 -->
+    <div class="device-detail-grid">
+        {% set device_id = request.query_params.get('filter_device') %}
+        {% set entry = devices.get(device_id) %}
+        {% if entry and (now - entry.update_time) <= 432000 %}
+        <div class="device-info">
+            <!-- 设备信息卡片 -->
+            <h2>
+                <a href="/device?deviceid={{ device_id }}" style="text-decoration: none; color: inherit;">
+                    {{ entry.deviceInfo.wholeInfo.alias if entry.deviceInfo.wholeInfo and entry.deviceInfo.wholeInfo.alias else device_id }}
+                </a>
+            </h2>
+            {% set last_update = now - entry.update_time %}
+            <p>
+                <strong>Last Update:</strong>
+                <span style="background-color: {{ 'green' if last_update <= 600 else 'red' }}; color: white; font-weight: bold; padding: 2px 6px; border-radius: 4px;">
+                    {{ last_update }}s ago — {{ 'Online' if last_update <= 600 else 'Offline' }}
+                </span>
+            </p>
+            <p><strong>Device ID:</strong> {{ device_id }}</p>
+            <p><strong>Version:</strong> {{ entry.versionCode or "N/A" }}</p>
+            {% set bb = entry.deviceInfo.get("bbInfo", {}) %}
+            {% set whole = entry.deviceInfo.get("wholeInfo", {}) %}
+            {% if whole.modelName %}<p><strong>Model:</strong> {{ whole.modelName }}</p>{% endif %}
+            {% if bb.androidVersion %}<p><strong>Android:</strong> {{ bb.androidVersion }}</p>{% endif %}
+            {% if bb.cpuModel %}<p><strong>CPU:</strong> {{ bb.cpuModel }}</p>{% endif %}
+            {% if bb.ip %}<p><strong>IP:</strong> {{ bb.ip }}</p>{% endif %}
+            {% if bb.mac %}<p><strong>MAC:</strong> {{ bb.mac }}</p>{% endif %}
+            {% if bb.ramUsage and bb.ramTotal %}
+            <div class="bar-group">
+                <label>RAM Usage ({{ bb.ramUsage }} / {{ bb.ramTotal }} MB)</label>
+                <progress value="{{ bb.ramUsage }}" max="{{ bb.ramTotal }}"></progress>
+            </div>
+            {% endif %}
+            {% if bb.romUsage and bb.romTotal %}
+            <div class="bar-group">
+                <label>ROM Usage ({{ bb.romUsage }} / {{ bb.romTotal }} MB)</label>
+                <progress value="{{ bb.romUsage }}" max="{{ bb.romTotal }}"></progress>
+            </div>
+            {% endif %}
+            {% if whole.batteryHealth %}
+            <div class="bar-group">
+                <label>
+                    Battery Level ({{ whole.batteryLevel }}%)
+                    {% if whole.batteryStatus == 5 %}
+                        <span style="background-color: green; color: white; font-weight: bold; padding: 2px 6px; border-radius: 4px;">FULL</span>
+                    {% elif whole.batteryStatus == 4 %}
+                        Charging-4
+                    {% elif whole.batteryStatus == 3 %}
+                        <span style="background-color: skyblue; color: white; font-weight: bold; padding: 2px 6px; border-radius: 4px;">Battery in Use</span>
+                    {% elif whole.batteryStatus == 2 %}
+                        <span style="background-color: lightgreen; color: white; font-weight: bold; padding: 2px 6px; border-radius: 4px;">Charging</span>
+                    {% else %}
+                        STATUS {{ whole.batteryStatus }}
+                    {% endif %}
+                </label>
+                <progress value="{{ whole.batteryLevel }}" max="100"></progress>
+            </div>
+            <p>
+                <strong>Battery Cycle:</strong>
+                <span style="color: green; font-weight: bold;">{{ whole.batteryChargeTimes }}</span>
+                <strong>Battery Health:</strong>
+                <span style="color: {{ 'red' if whole.batteryHealth < 80 else 'green' }}; font-weight: bold;">
+                    {{ whole.batteryHealth }}%
+                </span>
+            </p>
+            {% endif %}
+            {% if bb.signalLevel %}<p><strong>4G Signal:</strong> {{ bb.signalLevel }} dBm</p>{% endif %}
+            {% if entry.location %}
+            <p>
+                <strong>Location:</strong> {{ entry.location.latitude }}, {{ entry.location.longitude }}<br>
+                <strong>Last Location Update:</strong> {{ now - entry.location.update_time }}s ago<br>
+                <a href="https://www.google.com/maps?q={{ entry.location.latitude }},{{ entry.location.longitude }}" target="_blank">
+                    <strong>View on Google Maps</strong>
+                </a>
+            </p>
+            <p>
+                APRS SSID:
+                <a href="https://aprs.fi/#!call=a%2F{{ entry.location.aprs_ssid }}" target="_blank">
+                    <strong>{{ entry.location.aprs_ssid }}</strong>
+                </a>
+                <a href="/change_aprs_ssid?device_id={{ device_id }}" style="margin-left: 10px;"><button type="button">Change APRS SSID</button></a>
+            </p>
+            {% endif %}
+        </div>
+        <div class="device-map">
+            {% if entry.location %}
+            {% set lat = entry.location.latitude | float %}
+            {% set lon = entry.location.longitude | float %}
+            {% set dx = 0.1 %}
+            {% set dy = 0.1 %}
+            <iframe
+                width="100%" height="700" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"
+                style="border: 1px solid #ccc; border-radius: 8px;"
+                src="https://www.openstreetmap.org/export/embed.html?bbox={{ lon - dx }}%2C{{ lat - dy }}%2C{{ lon + dx }}%2C{{ lat + dy }}&layer=mapnik&marker={{ lat }}%2C{{ lon }}">
+            </iframe>
+            <br>
+            <small>
+                <a href="https://www.openstreetmap.org/?mlat={{ lat }}&mlon={{ lon }}#map=15/{{ lat }}/{{ lon }}" target="_blank">
+                    在 OpenStreetMap 上查看大图
+                </a>
+            </small>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    {% else %}
+    <!-- 多设备卡片 -->
     <div class="device-grid">
-        {% for device_id, entry in devices.items() %}
+        {% for device_id, entry in devices.items() if (now - entry.update_time) <= 172800 %}
         {% if entry.deviceInfo %}
         <div class="device-card">
             <!-- 标题超链接 -->
@@ -133,5 +258,6 @@
         {% endif %}
         {% endfor %}
     </div>
+    {% endif %}
 </body>
 </html>

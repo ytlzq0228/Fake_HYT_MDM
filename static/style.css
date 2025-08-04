@@ -1,15 +1,31 @@
+:root {
+    --primary-color: #007acc;
+    --success-color: green;
+    --warning-color: red;
+    --background-color: #f7f9fc;
+    --card-background: #ffffff;
+    --text-color: #333;
+    --subtext-color: #444;
+    --border-color: #ccc;
+    --shadow-color: rgba(0, 0, 0, 0.05);
+    --shadow-hover: rgba(0, 0, 0, 0.1);
+    --form-bg: #f9f9f9;
+}
+
+/* 基础布局 */
 body {
     font-family: Arial, sans-serif;
-    background-color: #f7f9fc;
+    background-color: var(--background-color);
     padding: 20px;
     margin: 0;
 }
 
 h1 {
     text-align: center;
-    color: #333;
+    color: var(--text-color);
 }
 
+/* 设备网格和卡片 */
 .device-grid {
     display: flex;
     flex-wrap: wrap;
@@ -18,31 +34,32 @@ h1 {
 }
 
 .device-card {
-    background: #ffffff;
+    background: var(--card-background);
     border: 1px solid #ddd;
     border-radius: 8px;
     width: 300px;
     padding: 16px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 8px var(--shadow-color);
     transition: 0.3s;
 }
 
 .device-card:hover {
-    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 16px var(--shadow-hover);
 }
 
 .device-card h2 {
     margin-top: 0;
-    color: #007acc;
+    color: var(--primary-color);
     font-size: 20px;
 }
 
 .device-card p {
     margin: 6px 0;
     font-size: 14px;
-    color: #444;
+    color: var(--subtext-color);
 }
 
+/* RAM/ROM/电池进度条 */
 .bar-group {
     margin: 10px 0;
 }
@@ -52,13 +69,26 @@ progress {
     height: 10px;
     border-radius: 4px;
 }
+
+/* Safari 兼容进度条 */
+progress::-webkit-progress-bar {
+    background-color: #eee;
+    border-radius: 4px;
+}
+
+progress::-webkit-progress-value {
+    background-color: var(--primary-color);
+    border-radius: 4px;
+}
+
+/* 表单样式 */
 .styled-form {
     max-width: 400px;
     margin: 0 auto;
-    background: #f9f9f9;
+    background: var(--form-bg);
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 8px var(--shadow-color);
 }
 
 .form-group {
@@ -76,4 +106,87 @@ progress {
     width: 100%;
     padding: 8px;
     box-sizing: border-box;
+}
+
+/* 设备筛选表单 */
+.device-filter-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 20px;
+    padding: 10px;
+    background-color: var(--form-bg);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    font-size: 1rem;
+}
+
+.device-filter-form label {
+    font-weight: bold;
+}
+
+.device-filter-form select {
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid #888;
+}
+
+.device-filter-form button {
+    padding: 5px 10px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.device-filter-form button:hover {
+    background-color: #005f99;
+}
+
+/* 筛选后单设备双栏布局 */
+.device-detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    padding: 20px;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    margin-bottom: 30px;
+}
+
+.dashboard-header h1 {
+    flex-grow: 1;
+    text-align: center;
+    margin: 0;
+    font-size: 1.6rem;
+    color: #333;
+}
+
+.device-filter-form-inline {
+    position: absolute;
+    left: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    background-color: #f0f0f0;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 0.95rem;
+}
+
+.device-filter-form-inline label {
+    font-weight: bold;
+}
+
+.device-filter-form-inline select {
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid #888;
 }
