@@ -3,17 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <title>SN 验证</title>
+    <script>
+        async function submitForm(event) {
+            event.preventDefault();
+
+            const sn = document.getElementById('sn').value;
+            const deviceid = document.getElementById('deviceid').value;
+            const timestamp = Math.floor(Date.now() / 1000).toString();  // 当前时间戳（秒）
+
+            const textToHash = sn + timestamp;
+            const encoder = new TextEncoder();
+            const data = encoder.encode(textToHash);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const sn_hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+            // 构造 GET URL 参数
+            const url = `/device/deviceinfo?deviceid=${encodeURIComponent(deviceid)}&timestamp=${timestamp}&sn_hash=${sn_hash}`;
+
+            window.location.href = url;
+        }
+    </script>
 </head>
 <body>
-    <h2>设备详细信息包含敏感内容，请机主本人验证SN序列号</h2>
-    <label>验证设备 {{ deviceid }}</label></p>
-    <label>设备别名 {{ devicename }}</label></p>
-    <form action="/device/deviceinfo" method="get">
-        <input type="hidden" name="deviceid" value="{{ deviceid }}">
+    <h2>设备详细信息包含敏感内容，请机主本人验证 SN 序列号</h2>
+    <p>验证设备 {{ deviceid }}</p>
+    <p>设备别名 {{ devicename }}</p>
+
+    <form onsubmit="submitForm(event)">
+        <input type="hidden" id="deviceid" name="deviceid" value="{{ deviceid }}">
         <label for="sn">SN:</label>
         <input type="text" id="sn" name="sn" required>
         <button type="submit">验证并查看设备信息</button>
     </form>
+
     <p>验证成功后将返回设备 JSON 信息</p>
 </body>
 </html>
