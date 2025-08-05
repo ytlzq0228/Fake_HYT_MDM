@@ -1,19 +1,21 @@
-from fastapi import FastAPI, Request
-from fastapi.responses import Response
-from email.utils import formatdate
+import os
 import json
-from pathlib import Path
+import threading
+import uuid
 import time
 import hashlib
+from pathlib import Path
 from fastapi import FastAPI, Request, Query, Form
 from fastapi.responses import HTMLResponse,PlainTextResponse,JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import FileResponse
+from fastapi import FastAPI, Request
+from fastapi.responses import Response
+from email.utils import formatdate
 from datetime import datetime
 from ses_service import ses_server
-import threading
-import uuid
+
 from utils.aprs_report import aprs_report
 from utils.responses import fixed_json_response, chunked_response
 from utils import data_memory_cache
@@ -148,10 +150,10 @@ async def chunked_uploadContact(request: Request):
             data_memory_cache.update_device_entry(device_id, entry)
 
             # 保存 contactsList 为 JSON 文件
-            os.makedirs("data", exist_ok=True)
-            contact_file = os.path.join("data", f"{device_id}_contact.json")
-            with open(contact_file, "w", encoding="utf-8") as f:
-                json.dump(contacts, f, ensure_ascii=False, indent=2)
+            Path("data").mkdir(parents=True, exist_ok=True)
+            contact_file = Path("data") / f"{device_id}_contact.json"
+            contact_file.write_text(json.dumps(contacts, ensure_ascii=False, indent=2),encoding="utf-8")
+            
         print("Body:", body.decode())
     except Exception as e:
         print(f"Logging error: {e}") 
