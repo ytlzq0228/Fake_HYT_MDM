@@ -120,13 +120,17 @@ async def chunked_ok_empty_data(request: Request):
 @app.post("/nrm/androidTask/getAppInfoFromAndroid")
 @app.post("/nrm/androidUploadInfo/uploadContact")
 async def chunked_ok_empty_data(request: Request):
-    body = await request.body()
-    req_data = json.loads(body.decode())
-    device_id = req_data.get("deviceId")
-    if device_id:
-        entry = data_memory_cache.get_device_entry(device_id)
-        entry["update_time"]= int(time.time())
-        data_memory_cache.update_device_entry(device_id, entry)
+    try:
+        body = await request.body()
+        req_data = json.loads(body.decode())
+        device_id = req_data.get("deviceId")
+        if device_id:
+            entry = data_memory_cache.get_device_entry(device_id)
+            entry["update_time"]= int(time.time())
+            data_memory_cache.update_device_entry(device_id, entry)
+        print("Body:", body.decode())
+    except Exception as e:
+        print(f"Logging error: {e}") 
     return chunked_response({
         "code": "0",
         "success": "true",
@@ -135,13 +139,17 @@ async def chunked_ok_empty_data(request: Request):
 
 @app.post("/nrm/androidUploadInfo/appMd5Check")
 async def chunked_data_array(request: Request):
-    body = await request.body()
-    req_data = json.loads(body.decode())
-    device_id = req_data.get("deviceId")
-    if device_id:
-        entry = data_memory_cache.get_device_entry(device_id)
-        entry["update_time"]= int(time.time())
-        data_memory_cache.update_device_entry(device_id, entry)
+    try:
+        body = await request.body()
+        req_data = json.loads(body.decode())
+        device_id = req_data.get("deviceId")
+        if device_id:
+            entry = data_memory_cache.get_device_entry(device_id)
+            entry["update_time"]= int(time.time())
+            data_memory_cache.update_device_entry(device_id, entry)
+        print("Body:", body.decode())
+    except Exception as e:
+        print(f"Logging error: {e}") 
     return chunked_response({
         "code": "0",
         "success": "true",
@@ -152,14 +160,17 @@ async def chunked_data_array(request: Request):
 @app.post("/nrm/androidUploadInfo/uploadWorkInterfaceInfo")
 @app.post("/nrm/androidTask/getAndroidCommand")
 async def chunked_data_null(request: Request):
-    body = await request.body()
-    req_data = json.loads(body.decode())
-    device_id = req_data.get("deviceId")
-    if device_id:
-        entry = data_memory_cache.get_device_entry(device_id)
-        entry["update_time"]= int(time.time())
-        data_memory_cache.update_device_entry(device_id, entry)
-    print("Body:", body.decode())
+    try:
+        body = await request.body()
+        req_data = json.loads(body.decode())
+        device_id = req_data.get("deviceId")
+        if device_id:
+            entry = data_memory_cache.get_device_entry(device_id)
+            entry["update_time"]= int(time.time())
+            data_memory_cache.update_device_entry(device_id, entry)
+        print("Body:", body.decode())
+    except Exception as e:
+        print(f"Logging error: {e}") 
     return chunked_response({
         "code": "0",
         "success": "true",
