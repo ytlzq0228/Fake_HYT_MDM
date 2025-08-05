@@ -5,7 +5,9 @@
     <title>Device Dashboard</title>
     <link rel="stylesheet" href="/static/style.css">
     <!-- 此AK绑定mdm.ctsdn.com部署您自己的网站需要自行更换AK -->
-    <script type="text/javascript" src="https://api.map.baidu.com/api?v=3.0&ak=aCHZGEKm6B0CJEzJFD1LWAjAVeI3LiMq"></script>
+    {% if map_type == "baidu" %}
+        <script type="text/javascript" src="https://api.map.baidu.com/api?v=3.0&ak=aCHZGEKm6B0CJEzJFD1LWAjAVeI3LiMq"></script>
+    {% endif %}
 </head>
 <body>
     <!-- 右上角二维码 -->
@@ -13,9 +15,22 @@
         <img src="/static/QRCODE_2232.png" alt="QR Code" style="width: 70px; height: auto;">
     </div>
 
+
+<div class="map-toggle" style="position: absolute; top: 5px; right: 80px;">
+    <a class="map-button {% if map_type == 'baidu' %}active{% else %}inactive{% endif %}" 
+       href="/dashboard?map=baidu{% if request.query_params.get('filter_device') %}&filter_device={{ request.query_params.get('filter_device') }}{% endif %}">
+        百度
+    </a>
+    <a class="map-button {% if map_type == 'openstreet' %}active{% else %}inactive{% endif %}" 
+       href="/dashboard?map=openstreet{% if request.query_params.get('filter_device') %}&filter_device={{ request.query_params.get('filter_device') }}{% endif %}">
+        OSM
+    </a>
+</div>
+
 <div class="dashboard-header">
     <h1>Registered Devices (Updated in 5 Days)</h1>
     <form method="get" action="/dashboard" class="device-filter-form-inline">
+        <input type="hidden" name="map" value="{{ map_type }}">
         <label for="filter_device">筛选设备:</label>
         <select name="filter_device" onchange="this.form.submit()">
             <option value="">-- 显示全部 --</option>
@@ -32,7 +47,7 @@
 </div>
 
     {% if request.query_params.get('filter_device') %}
-    <!-- 单设备：两列展示 -->
+    <!-- 单设备两列展示 -->
     <div class="device-detail-grid">
         {% set device_id = request.query_params.get('filter_device') %}
         {% set entry = devices.get(device_id) %}
@@ -118,64 +133,67 @@
             {% endif %}
         </div>
         <div class="device-map">
+            <!--Biadu Map-->
             {% if entry.location %}
-            {% set lat = entry.location.latitude | float %}
-            {% set lon = entry.location.longitude | float %}
-            {% set alias = entry.deviceInfo.wholeInfo.alias if entry.deviceInfo and entry.deviceInfo.wholeInfo else device_id %}
-            
-            <div id="bdmap_device" style="width: 100%; height: 700px; border: 1px solid #ccc; border-radius: 8px;"></div>
-            
-            <script type="text/javascript">
-            (function() {
-                const wgsLat = {{ lat }};
-                const wgsLon = {{ lon }};
-                const alias = "{{ alias }}";
-            
-                const map = new BMap.Map("bdmap_device");
-                map.enableScrollWheelZoom(true);
-            
-                // 原始 WGS84 点
-                const wgsPoint = new BMap.Point(wgsLon, wgsLat);
-            
-                // 调用坐标转换器
-                const convertor = new BMap.Convertor();
-                convertor.translate([wgsPoint], 1, 5, function(data) {
-                    if (data.status === 0) {
-                        const bdPoint = data.points[0];
-                        map.centerAndZoom(bdPoint, 15);
-            
-                        const marker = new BMap.Marker(bdPoint);
-                        map.addOverlay(marker);
-            
-                        const infoContent = `<b>${alias}</b><br/>原始坐标 (WGS-84):<br/>纬度: ${wgsLat}<br/>经度: ${wgsLon}`;
-                        const infoWindow = new BMap.InfoWindow(infoContent);
-            
-                        marker.addEventListener("click", function() {
-                            map.openInfoWindow(infoWindow, bdPoint);
+                {% if map_type == "baidu" %}
+                    {% set lat = entry.location.latitude | float %}
+                    {% set lon = entry.location.longitude | float %}
+                    {% set alias = entry.deviceInfo.wholeInfo.alias if entry.deviceInfo and entry.deviceInfo.wholeInfo else device_id %}
+                    
+                    <div id="bdmap_device" style="width: 100%; height: 700px; border: 1px solid #ccc; border-radius: 8px;"></div>
+                    
+                    <script type="text/javascript">
+                    (function() {
+                        const wgsLat = {{ lat }};
+                        const wgsLon = {{ lon }};
+                        const alias = "{{ alias }}";
+                    
+                        const map = new BMap.Map("bdmap_device");
+                        map.enableScrollWheelZoom(true);
+                    
+                        // 原始 WGS84 点
+                        const wgsPoint = new BMap.Point(wgsLon, wgsLat);
+                    
+                        // 调用坐标转换器
+                        const convertor = new BMap.Convertor();
+                        convertor.translate([wgsPoint], 1, 5, function(data) {
+                            if (data.status === 0) {
+                                const bdPoint = data.points[0];
+                                map.centerAndZoom(bdPoint, 15);
+                    
+                                const marker = new BMap.Marker(bdPoint);
+                                map.addOverlay(marker);
+                    
+                                const infoContent = `<b>${alias}</b><br/>原始坐标 (WGS-84):<br/>纬度: ${wgsLat}<br/>经度: ${wgsLon}`;
+                                const infoWindow = new BMap.InfoWindow(infoContent);
+                    
+                                marker.addEventListener("click", function() {
+                                    map.openInfoWindow(infoWindow, bdPoint);
+                                });
+                            } else {
+                                console.error("坐标转换失败", data);
+                            }
                         });
-                    } else {
-                        console.error("坐标转换失败", data);
-                    }
-                });
-            })();
-            </script>
-            <!--OpenStreetMap
-            {% set lat = entry.location.latitude | float %}
-            {% set lon = entry.location.longitude | float %}
-            {% set dx = 0.1 %}
-            {% set dy = 0.1 %}
-            <iframe
-                width="100%" height="700" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"
-                style="border: 1px solid #ccc; border-radius: 8px;"
-                src="https://www.openstreetmap.org/export/embed.html?bbox={{ lon - dx }}%2C{{ lat - dy }}%2C{{ lon + dx }}%2C{{ lat + dy }}&layer=mapnik&marker={{ lat }}%2C{{ lon }}">
-            </iframe>
-            <br>
-            <small>
-                <a href="https://www.openstreetmap.org/?mlat={{ lat }}&mlon={{ lon }}#map=15/{{ lat }}/{{ lon }}" target="_blank">
-                    在 OpenStreetMap 上查看大图
-                </a>
-            </small>
-            -->
+                    })();
+                    </script>
+                {% elif map_type == "openstreet" %}
+                    <!--OpenStreetMap-->
+                    {% set lat = entry.location.latitude | float %}
+                    {% set lon = entry.location.longitude | float %}
+                    {% set dx = 0.1 %}
+                    {% set dy = 0.1 %}
+                    <iframe
+                        width="100%" height="700" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"
+                        style="border: 1px solid #ccc; border-radius: 8px;"
+                        src="https://www.openstreetmap.org/export/embed.html?bbox={{ lon - dx }}%2C{{ lat - dy }}%2C{{ lon + dx }}%2C{{ lat + dy }}&layer=mapnik&marker={{ lat      }}%2C{{ lon }}">
+                    </iframe>
+                    <br>
+                    <small>
+                        <a href="https://www.openstreetmap.org/?mlat={{ lat }}&mlon={{ lon }}#map=15/{{ lat }}/{{ lon }}" target="_blank">
+                            在 OpenStreetMap 上查看大图
+                        </a>
+                    </small>
+                {% endif %}  
             {% endif %}
         </div>
         {% endif %}
@@ -281,65 +299,67 @@
               {% endif %}
             </p>
             </p>
-            {% set lat = entry.location.latitude | float %}
-            {% set lon = entry.location.longitude | float %}
-            {% set alias = entry.deviceInfo.wholeInfo.alias if entry.deviceInfo and entry.deviceInfo.wholeInfo else device_id %}
-            
-            <div id="bdmap_{{ loop.index }}" style="width: 100%; height: 300px; border: 1px solid #ccc; border-radius: 8px;"></div>
-            
-            <script type="text/javascript">
-            (function() {
-                const wgsLat = {{ lat }};
-                const wgsLon = {{ lon }};
-                const alias = "{{ alias }}";
-            
-                const map = new BMap.Map("bdmap_{{ loop.index }}");
-                map.enableScrollWheelZoom(true);
-            
-                // 原始 WGS84 点
-                const wgsPoint = new BMap.Point(wgsLon, wgsLat);
-            
-                // 调用坐标转换器
-                const convertor = new BMap.Convertor();
-                convertor.translate([wgsPoint], 1, 5, function(data) {
-                    if (data.status === 0) {
-                        const bdPoint = data.points[0];
-                        map.centerAndZoom(bdPoint, 15);
-            
-                        const marker = new BMap.Marker(bdPoint);
-                        map.addOverlay(marker);
-            
-                        const infoContent = `<b>${alias}</b><br/>原始坐标 (WGS-84):<br/>纬度: ${wgsLat}<br/>经度: ${wgsLon}`;
-                        const infoWindow = new BMap.InfoWindow(infoContent);
-            
-                        marker.addEventListener("click", function() {
-                            map.openInfoWindow(infoWindow, bdPoint);
-                        });
-                    } else {
-                        console.error("坐标转换失败", data);
-                    }
-                });
-            })();
-            </script>
-            <!--OpenStreetMap
-            {% set lat = entry.location.latitude | float %}
-            {% set lon = entry.location.longitude | float %}
-            {% set dx = 5 %}
-            {% set dy = 5 %}
-            <iframe
-                width="100%" height="300" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"
-                style="border: 1px solid #ccc; border-radius: 8px;"
-                src="https://www.openstreetmap.org/export/embed.html?bbox={{ lon - dx }}%2C{{ lat - dy }}%2C{{ lon + dx }}%2C{{ lat + dy }}&layer=mapnik&marker={{ lat }}%2C{{ lon }}">
-            </iframe>
-            
-
-            <br>
-            <small>
-                <a href="https://www.openstreetmap.org/?mlat={{ lat }}&mlon={{ lon }}#map=15/{{ lat }}/{{ lon }}" target="_blank">
-                    在 OpenStreetMap 上查看大图
-                </a>
-            </small>
-            -->
+            {% if map_type == "baidu" %}
+                {% set lat = entry.location.latitude | float %}
+                {% set lon = entry.location.longitude | float %}
+                {% set alias = entry.deviceInfo.wholeInfo.alias if entry.deviceInfo and entry.deviceInfo.wholeInfo else device_id %}
+                
+                <div id="bdmap_{{ loop.index }}" style="width: 100%; height: 300px; border: 1px solid #ccc; border-radius: 8px;"></div>
+                
+                <script type="text/javascript">
+                (function() {
+                    const wgsLat = {{ lat }};
+                    const wgsLon = {{ lon }};
+                    const alias = "{{ alias }}";
+                
+                    const map = new BMap.Map("bdmap_{{ loop.index }}");
+                    map.enableScrollWheelZoom(true);
+                
+                    // 原始 WGS84 点
+                    const wgsPoint = new BMap.Point(wgsLon, wgsLat);
+                
+                    // 调用坐标转换器
+                    const convertor = new BMap.Convertor();
+                    convertor.translate([wgsPoint], 1, 5, function(data) {
+                        if (data.status === 0) {
+                            const bdPoint = data.points[0];
+                            map.centerAndZoom(bdPoint, 15);
+                
+                            const marker = new BMap.Marker(bdPoint);
+                            map.addOverlay(marker);
+                
+                            const infoContent = `<b>${alias}</b><br/>原始坐标 (WGS-84):<br/>纬度: ${wgsLat}<br/>经度: ${wgsLon}`;
+                            const infoWindow = new BMap.InfoWindow(infoContent);
+                
+                            marker.addEventListener("click", function() {
+                                map.openInfoWindow(infoWindow, bdPoint);
+                            });
+                        } else {
+                            console.error("坐标转换失败", data);
+                        }
+                    });
+                })();
+                </script>
+            {% elif map_type == "openstreet" %}
+                <!--OpenStreetMap-->
+                {% set lat = entry.location.latitude | float %}
+                {% set lon = entry.location.longitude | float %}
+                {% set dx = 5 %}
+                {% set dy = 5 %}
+                <iframe
+                    width="100%" height="300" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"
+                    style="border: 1px solid #ccc; border-radius: 8px;"
+                    src="https://www.openstreetmap.org/export/embed.html?bbox={{ lon - dx }}%2C{{ lat - dy }}%2C{{ lon + dx }}%2C{{ lat + dy }}&layer=mapnik&marker={{ lat }}%2C    {{ lon }}">
+                </iframe>
+                
+    
+                <br>
+                <small>
+                    <a href="https://www.openstreetmap.org/?mlat={{ lat }}&mlon={{ lon }}#map=15/{{ lat }}/{{ lon }}" target="_blank">
+                        在 OpenStreetMap 上查看大图
+                    </a>
+                </small>
+            {% endif %}
             {% endif %}
         </div>
         {% endif %}

@@ -190,3 +190,37 @@ progress::-webkit-progress-value {
     border-radius: 4px;
     border: 1px solid #888;
 }
+
+.map-toggle {
+    display: flex;
+    gap: 10px;
+    position: absolute;
+    top: 50px;
+    right: 100px;
+}
+
+.map-button {
+    width: 70px;
+    height: 70px;
+    border-radius: 8px;
+    font-size: 16px;
+    text-align: center;
+    line-height: 70px;
+    text-decoration: none;
+    color: white;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    transition: background-color 0.3s;
+}
+
+.map-button.active {
+    background-color: #007acc;
+}
+
+.map-button.inactive {
+    background-color: #ccc;
+    color: #333;
+}
+
+.map-button:hover:not(.active) {
+    background-color: #999;
+}

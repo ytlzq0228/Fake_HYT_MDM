@@ -257,7 +257,7 @@ async def default_image():
     return FileResponse(image_path, media_type="image/jpeg")
 
 @app.get("/dashboard", response_class=HTMLResponse)
-async def dashboard(request: Request, filter_device: Optional[str] = None):
+async def dashboard(request: Request, filter_device: Optional[str] = None, map: Optional[str] = "baidu"):
     devices = data_memory_cache.get_device_cache()
     devices_all = data_memory_cache.get_device_cache()
     current_time = int(time.time())
@@ -276,7 +276,8 @@ async def dashboard(request: Request, filter_device: Optional[str] = None):
         "request": request,
         "devices": devices,
         "devices_all": devices_all,
-        "now": current_time
+        "now": current_time,
+        "map_type": map  # 新增传递地图类型
     })
 
 @app.get("/device", response_class=HTMLResponse)
