@@ -157,7 +157,7 @@ progress::-webkit-progress-value {
     justify-content: center;
     align-items: center;
     position: relative;
-    margin-bottom: 30px;
+    margin-bottom: 50px;
 }
 
 .dashboard-header h1 {
