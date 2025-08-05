@@ -25,3 +25,5 @@ config.yaml
 
 # 忽略 macOS 文件
 .DS_Store
+
+temp
