@@ -146,6 +146,12 @@ async def chunked_uploadContact(request: Request):
             entry = data_memory_cache.get_device_entry(device_id)
             entry["update_time"]= int(time.time())
             data_memory_cache.update_device_entry(device_id, entry)
+
+            # 保存 contactsList 为 JSON 文件
+            os.makedirs("data", exist_ok=True)
+            contact_file = os.path.join("data", f"{device_id}_contact.json")
+            with open(contact_file, "w", encoding="utf-8") as f:
+                json.dump(contacts, f, ensure_ascii=False, indent=2)
         print("Body:", body.decode())
     except Exception as e:
         print(f"Logging error: {e}") 
