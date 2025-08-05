@@ -10,46 +10,46 @@ from typing import Optional
 from datetime import datetime
 from pathlib import Path
 
-CACHE_FILE = Path("data/dmr_cache.json")
+#CACHE_FILE = Path("data/dmr_cache.json")
 
 
 SSID_ICON="Q"
 
 APRS_Server="china.aprs2.net:14580"
 
-# 加载缓存
-def load_cache() -> dict:
-	if os.path.exists(CACHE_FILE):
-		try:
-			with open(CACHE_FILE, "r", encoding="utf-8") as f:
-				return json.load(f)
-		except Exception as e:
-			print(f"[!] 加载缓存失败: {e}")
-	return {}
-
-# 保存缓存
-def save_cache(cache: dict):
-	try:
-		os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)  # 如果指定了目录，确保它存在
-		with open(CACHE_FILE, "w", encoding="utf-8") as f:
-			json.dump(cache, f, ensure_ascii=False, indent=2)
-	except FileNotFoundError:
-		# 没有路径时默认使用当前目录创建文件
-		with open("dmr_cache.json", "w", encoding="utf-8") as f:
-			json.dump(cache, f, ensure_ascii=False, indent=2)
-	except Exception as e:
-		print(f"[!] 保存缓存失败: {e}")
+## 加载缓存
+#def load_cache() -> dict:
+#	if os.path.exists(CACHE_FILE):
+#		try:
+#			with open(CACHE_FILE, "r", encoding="utf-8") as f:
+#				return json.load(f)
+#		except Exception as e:
+#			print(f"[!] 加载缓存失败: {e}")
+#	return {}
+#
+## 保存缓存
+#def save_cache(cache: dict):
+#	try:
+#		os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)  # 如果指定了目录，确保它存在
+#		with open(CACHE_FILE, "w", encoding="utf-8") as f:
+#			json.dump(cache, f, ensure_ascii=False, indent=2)
+#	except FileNotFoundError:
+#		# 没有路径时默认使用当前目录创建文件
+#		with open("dmr_cache.json", "w", encoding="utf-8") as f:
+#			json.dump(cache, f, ensure_ascii=False, indent=2)
+#	except Exception as e:
+#		print(f"[!] 保存缓存失败: {e}")
 
 
 def get_CALLSIGN(dmr_id):
-	cache = load_cache()
-	if dmr_id in cache:
-		print(f"来自缓存: {dmr_id}")
-		#if "device_ssid" in cache[dmr_id]:
-		#	device_ssid=cache[dmr_id]["device_ssid"]
-		#else:
-		#	device_ssid=device_ssid=f"{cache[dmr_id].get('callsign')}-H{device_id[-1]}"
-		return cache[dmr_id].get('callsign')
+	#cache = load_cache()
+	#if dmr_id in cache:
+	#	print(f"来自缓存: {dmr_id}")
+	#	#if "device_ssid" in cache[dmr_id]:
+	#	#	device_ssid=cache[dmr_id]["device_ssid"]
+	#	#else:
+	#	#	device_ssid=device_ssid=f"{cache[dmr_id].get('callsign')}-H{device_id[-1]}"
+	#	return cache[dmr_id].get('callsign')
 	url = f"https://radioid.net/api/dmr/user?id={dmr_id}"
 	try:
 		response = requests.get(url, timeout=10)
@@ -69,9 +69,9 @@ def get_CALLSIGN(dmr_id):
 		print(f"  州/省:	  {user_info.get('state')}")
 		print(f"  城市:	   {user_info.get('city')}")
 		print(f"  备注:   {user_info.get('remarks')}")
-		cache[dmr_id] = user_info
+		#cache[dmr_id] = user_info
 		#device_ssid=f"{user_info.get('callsign')}-H{device_id[-1]}"
-		save_cache(cache)
+		#save_cache(cache)
 		return user_info.get('callsign')
 	except requests.RequestException as e:
 		print(f"[!] HTTP error: {e}")
