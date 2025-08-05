@@ -4,6 +4,7 @@ from email.utils import formatdate
 import json
 from pathlib import Path
 import time
+import hashlib
 from fastapi import FastAPI, Request, Query, Form
 from fastapi.responses import HTMLResponse,PlainTextResponse,JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -119,7 +120,12 @@ async def chunked_ok_empty_data(request: Request):
 @app.post("/nrm/androidTask/getAppInfoFromAndroid")
 @app.post("/nrm/androidUploadInfo/uploadContact")
 async def chunked_ok_empty_data(request: Request):
-    await request.body()
+    body = await request.body()
+    device_id = req_data.get("deviceId")
+    if device_id:
+        entry = data_memory_cache.get_device_entry(device_id)
+        entry["update_time"]= int(time.time())
+        data_memory_cache.update_device_entry(device_id, entry)
     return chunked_response({
         "code": "0",
         "success": "true",
@@ -128,7 +134,12 @@ async def chunked_ok_empty_data(request: Request):
 
 @app.post("/nrm/androidUploadInfo/appMd5Check")
 async def chunked_data_array(request: Request):
-    await request.body()
+    body = await request.body()
+    device_id = req_data.get("deviceId")
+    if device_id:
+        entry = data_memory_cache.get_device_entry(device_id)
+        entry["update_time"]= int(time.time())
+        data_memory_cache.update_device_entry(device_id, entry)
     return chunked_response({
         "code": "0",
         "success": "true",
@@ -140,6 +151,11 @@ async def chunked_data_array(request: Request):
 @app.post("/nrm/androidTask/getAndroidCommand")
 async def chunked_data_null(request: Request):
     body = await request.body()
+    device_id = req_data.get("deviceId")
+    if device_id:
+        entry = data_memory_cache.get_device_entry(device_id)
+        entry["update_time"]= int(time.time())
+        data_memory_cache.update_device_entry(device_id, entry)
     print("Body:", body.decode())
     return chunked_response({
         "code": "0",
@@ -243,27 +259,32 @@ async def view_device(request: Request, deviceid: str = Query(...)):
 
 
 @app.get("/device/deviceinfo", response_class=HTMLResponse)
-async def verify_device_sn(deviceid: str = Query(...), sn: str = Query(...)):
+async def verify_device_sn(
+    deviceid: str = Query(...),
+    timestamp: int = Query(...),
+    sn_hash: str = Query(...)
+):
     entry = data_memory_cache.get_device_entry(deviceid)
     if not entry:
         return HTMLResponse("<h3>设备不存在</h3>", status_code=404)
 
     real_sn = entry.get("sn")
-    if sn != real_sn:
+    if not real_sn:
+        return HTMLResponse("<h3>设备未注册 SN</h3>", status_code=400)
+
+    now = int(time.time())
+    if abs(now - timestamp) > 900:  # 超过±15分钟
+        return HTMLResponse("<h3>时间戳无效（请求过期）</h3>", status_code=403)
+
+    # 验证哈希
+    expected = hashlib.sha256((real_sn + str(timestamp)).encode('utf-8')).hexdigest()
+    if expected != sn_hash:
         return HTMLResponse("<h3>SN 校验失败</h3>", status_code=403)
 
     return PlainTextResponse(
         json.dumps(entry, indent=2, ensure_ascii=False),
         media_type="application/json"
     )
-
-
-@app.get("/change_aprs_ssid", response_class=HTMLResponse)
-async def change_aprs_ssid_form(request: Request, device_id: str = Query(...)):
-    return templates.TemplateResponse("change_aprs_ssid.html", {
-        "request": request,
-        "device_id": device_id
-    })
 
 
 @app.post("/change_aprs_ssid", response_class=HTMLResponse)
