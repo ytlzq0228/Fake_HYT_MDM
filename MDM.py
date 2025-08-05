@@ -85,7 +85,7 @@ async def login(request: Request):
     return fixed_json_response(response_data)
 
 @app.post("/nrm/androidTask/getDeviceInfoFromAndroid")
-async def chunked_ok_empty_data(request: Request):
+async def chunked_getDeviceInfoFromAndroid(request: Request):
     try:
         body = await request.body()
         req_data = json.loads(body.decode())
@@ -118,8 +118,26 @@ async def chunked_ok_empty_data(request: Request):
     })
 
 @app.post("/nrm/androidTask/getAppInfoFromAndroid")
+async def chunked_getAppInfoFromAndroid(request: Request):
+    try:
+        body = await request.body()
+        req_data = json.loads(body.decode())
+        device_id = req_data.get("deviceId")
+        if device_id:
+            entry = data_memory_cache.get_device_entry(device_id)
+            entry["update_time"]= int(time.time())
+            data_memory_cache.update_device_entry(device_id, entry)
+        print("Body:", body.decode())
+    except Exception as e:
+        print(f"Logging error: {e}") 
+    return chunked_response({
+        "code": "0",
+        "success": "true",
+        "msg": ""
+    })
+
 @app.post("/nrm/androidUploadInfo/uploadContact")
-async def chunked_ok_empty_data(request: Request):
+async def chunked_uploadContact(request: Request):
     try:
         body = await request.body()
         req_data = json.loads(body.decode())

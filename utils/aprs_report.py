@@ -8,8 +8,9 @@ import requests
 import json
 from typing import Optional
 from datetime import datetime
+from pathlib import Path
 
-CACHE_FILE = "dmr_cache.json"
+CACHE_FILE = Path("data/dmr_cache.json")
 
 
 SSID_ICON="Q"
