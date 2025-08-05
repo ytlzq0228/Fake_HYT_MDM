@@ -144,6 +144,7 @@ async def chunked_uploadContact(request: Request):
         body = await request.body()
         req_data = json.loads(body.decode())
         device_id = req_data.get("deviceId")
+        contacts = req_data.get("contactsList", [])
         if device_id:
             entry = data_memory_cache.get_device_entry(device_id)
             entry["update_time"]= int(time.time())
@@ -153,7 +154,7 @@ async def chunked_uploadContact(request: Request):
             Path("data").mkdir(parents=True, exist_ok=True)
             contact_file = Path("data") / f"{device_id}_contact.json"
             contact_file.write_text(json.dumps(contacts, ensure_ascii=False, indent=2),encoding="utf-8")
-            
+
         print("Body:", body.decode())
     except Exception as e:
         print(f"Logging error: {e}") 
@@ -194,7 +195,7 @@ async def chunked_data_null(request: Request):
             entry = data_memory_cache.get_device_entry(device_id)
             entry["update_time"]= int(time.time())
             data_memory_cache.update_device_entry(device_id, entry)
-        print("Body:", body.decode())
+        #print("Body:", body.decode())
     except Exception as e:
         print(f"Logging error: {e}") 
     return chunked_response({
