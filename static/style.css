@@ -200,7 +200,7 @@ progress::-webkit-progress-value {
 }
 
 .map-button {
-    width: 70px;
+    width: 100px;
     height: 70px;
     border-radius: 8px;
     font-size: 16px;

@@ -61,14 +61,14 @@ def get_CALLSIGN(dmr_id):
 			return None
 
 		user_info = data["results"][0]
-		print("[APRS_Service]查询成功RadioID.net:")
-		print(f"[APRS_Service]  DMR ID:	 {user_info.get('id')}")
-		print(f"[APRS_Service]  呼号:	   {user_info.get('callsign')}")
-		print(f"[APRS_Service]  姓名:	   {user_info.get('fname', '')} {user_info.get('lname', '')}")
-		print(f"[APRS_Service]  国家:	   {user_info.get('country')}")
-		print(f"[APRS_Service]  州/省:	  {user_info.get('state')}")
-		print(f"[APRS_Service]  城市:	   {user_info.get('city')}")
-		print(f"[APRS_Service]  备注:   {user_info.get('remarks')}")
+		print("[APRS_Service]Query Callsign success on RadioID.net:")
+		print(f"[APRS_Service]DMR ID:	 {user_info.get('id')}")
+		print(f"[APRS_Service]callsign:	   {user_info.get('callsign')}")
+		print(f"[APRS_Service]fname:	   {user_info.get('fname', '')} {user_info.get('lname', '')}")
+		print(f"[APRS_Service]country:	   {user_info.get('country')}")
+		print(f"[APRS_Service]state:	  {user_info.get('state')}")
+		print(f"[APRS_Service]city:	   {user_info.get('city')}")
+		print(f"[APRS_Service]remarks:   {user_info.get('remarks')}")
 		#cache[dmr_id] = user_info
 		#device_ssid=f"{user_info.get('callsign')}-H{device_id[-1]}"
 		#save_cache(cache)
@@ -138,9 +138,9 @@ def aprs_report(lat_input, lon_input, device_name, issiRadioId, device_id, devic
 		# 定义 APRS 服务器地址和端口（字节形式）
 		server_host = APRS_Server.encode('utf-8')  # 使用 rotate.aprs2.net 服务器和端口 14580
 
-		#----------------test_only------------------------
+		#----------------test_only,线上环境一定要删------------------------
 		#return device_ssid
-		#----------------test_only------------------------
+		#----------------test_only,线上环境一定要删------------------------
 		
 		# 创建 TCP 对象并传入服务器信息
 		a = aprs.TCP(callsign, password, servers=[server_host])

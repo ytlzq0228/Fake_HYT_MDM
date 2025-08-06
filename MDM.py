@@ -23,6 +23,8 @@ from typing import Optional
 
 app = FastAPI()
 
+GLOBAL_CONFIG=json.loads(Path("data/sys_conf.json").read_text(encoding="utf-8"))
+
 RESPONSE_PATH = Path("static/response.json")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
@@ -65,10 +67,12 @@ async def check_device_sn(request: Request):
     try:
         with RESPONSE_PATH.open("r", encoding="utf-8") as f:
             response_data = json.load(f)["check_device_sn"]
+        response_data["data"]["sesPort"]=GLOBAL_CONFIG.get("http_service_port")
+        response_data["data"]["mdmPort"]=GLOBAL_CONFIG.get("http_service_port")
+        response_data["data"]["sesIp"]=GLOBAL_CONFIG.get("server_ip")
     except Exception as e:
         print(f"[ERROR] 无法加载响应文件: {e}")
         response_data = {"code": "500", "success": "false", "msg": "内部错误", "data": None}
-    #print(response_data)
     return fixed_json_response(response_data)
 
 @app.post("/login/login")
@@ -79,7 +83,9 @@ async def login(request: Request):
     try:
         with RESPONSE_PATH.open("r", encoding="utf-8") as f:
             response_data = json.load(f)["login"]
-            response_data["data"]["token"]=uuid.uuid4().hex
+        response_data["data"]["token"]=uuid.uuid4().hex
+        response_data["data"]["ip"]=GLOBAL_CONFIG.get("server_ip")
+        response_data["data"]["port"]=GLOBAL_CONFIG.get("tcp_service_port")
     except Exception as e:
         print(f"[ERROR] 无法加载响应文件: {e}")
         response_data = {"code": "500", "success": "false", "msg": "内部错误", "data": None}
@@ -200,12 +206,12 @@ async def chunked_data_null(request: Request):
         print(f"Logging error: {e}") 
     return None
     #无关上报日志太多了，考虑不返回
-   #return chunked_response({
-   #    "code": "0",
-   #    "success": "true",
-   #    "msg": "",
-   #    "data": None
-   #})
+    return chunked_response({
+        "code": "0",
+        "success": "true",
+        "msg": "",
+        "data": None
+    })
 
 @app.post("/nrm/androidTask/uploadLocationInfo")
 async def uploadLocationInfo(request: Request):
@@ -217,9 +223,9 @@ async def uploadLocationInfo(request: Request):
         device_id = req_data.get("deviceId")
 
         if not device_id:
-            raise ValueError("缺少 deviceId")
+            raise ValueError("no deviceId")
         if float(req_data.get("latitude"))==0 and float(req_data.get("longitude"))==0:
-            raise ValueError("无效的经纬度")
+            raise ValueError("invalid latitude or longitude")
         location_data = {
             "latitude": req_data.get("latitude"),
             "longitude": req_data.get("longitude"),
@@ -241,7 +247,7 @@ async def uploadLocationInfo(request: Request):
         entry["location"] = location_data
         entry["update_time"]= int(time.time())
         data_memory_cache.update_device_entry(device_id, entry)
-        print(f"[APRS_Service][Cache] 上报位置 {device_id} {device_ssid}")
+        print(f"[APRS_Service][Cache]Report APRS for device_id：{device_id},device_ssid:{device_ssid}")
 
         
     except Exception as e:
@@ -256,15 +262,23 @@ async def uploadLocationInfo(request: Request):
 
 
 @app.get("/")
-async def default_image():
-    image_path = "static/QRCODE_2232.png"  # 确保图片存在于该路径
-    return FileResponse(image_path, media_type="image/jpeg")
+async def index(request: Request):
+    server_ip = GLOBAL_CONFIG.get("server_ip", "")
+    server_port = GLOBAL_CONFIG.get("http_service_port", "")
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "server_ip": server_ip,
+        "server_port": server_port
+    })
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request, filter_device: Optional[str] = None, map: Optional[str] = "baidu"):
     devices = data_memory_cache.get_device_cache()
     devices_all = data_memory_cache.get_device_cache()
     current_time = int(time.time())
+    server_ip = GLOBAL_CONFIG.get("server_ip", "")
+    server_port = GLOBAL_CONFIG.get("http_service_port", "")
+
     for i in devices:
         if "update_time" not in devices[i]:
             devices[i]["update_time"]=devices[i]["location"]["update_time"]
@@ -278,6 +292,8 @@ async def dashboard(request: Request, filter_device: Optional[str] = None, map: 
 
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
+        "server_ip": server_ip,
+        "server_port": server_port,
         "devices": devices,
         "devices_all": devices_all,
         "now": current_time,
