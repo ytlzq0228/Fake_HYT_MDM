@@ -224,3 +224,19 @@ progress::-webkit-progress-value {
 .map-button:hover:not(.active) {
     background-color: #999;
 }
+
+.view-json-button {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 4px 8px;
+    background-color: #007acc;
+    color: white;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 12px;
+    transition: background-color 0.3s ease;
+}
+
+.view-json-button:hover {
+    background-color: #005fa3;
+}

@@ -58,6 +58,7 @@
                     {{ entry.deviceInfo.wholeInfo.alias if entry.deviceInfo.wholeInfo and entry.deviceInfo.wholeInfo.alias else device_id }}
                 </a>
             </h2>
+            <a href="/device?deviceid={{ device_id }}" class="view-json-button" target="_blank">查看原始 JSON</a>
             {% set last_update = now - entry.update_time %}
             <p>
                 <strong>Last Update:</strong>
@@ -193,6 +194,7 @@
                         </a>
                     </small>
                 {% endif %}  
+
             {% endif %}
         </div>
         {% endif %}
@@ -205,7 +207,8 @@
         <div class="device-card">
             <!-- 标题超链接 -->
             <h2>
-                <a href="/device?deviceid={{ device_id }}" style="text-decoration: none; color: inherit;">
+                <a href="/dashboard?filter_device={{ device_id }}&map={{ map_type }}"
+                   style="text-decoration: none; color: inherit;">
                     {{ entry.deviceInfo.wholeInfo.alias if entry.deviceInfo.wholeInfo and entry.deviceInfo.wholeInfo.alias else device_id }}
                 </a>
             </h2>
