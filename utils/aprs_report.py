@@ -57,26 +57,26 @@ def get_CALLSIGN(dmr_id):
 		data = response.json()
 
 		if not data or "results" not in data or not data["results"]:
-			print(f"[!] No result found for DMR ID: {dmr_id}")
+			print(f"[APRS_Service][!] No result found for DMR ID: {dmr_id}")
 			return None
 
 		user_info = data["results"][0]
-		print("查询成功RadioID.net:")
-		print(f"  DMR ID:	 {user_info.get('id')}")
-		print(f"  呼号:	   {user_info.get('callsign')}")
-		print(f"  姓名:	   {user_info.get('fname', '')} {user_info.get('lname', '')}")
-		print(f"  国家:	   {user_info.get('country')}")
-		print(f"  州/省:	  {user_info.get('state')}")
-		print(f"  城市:	   {user_info.get('city')}")
-		print(f"  备注:   {user_info.get('remarks')}")
+		print("[APRS_Service]查询成功RadioID.net:")
+		print(f"[APRS_Service]  DMR ID:	 {user_info.get('id')}")
+		print(f"[APRS_Service]  呼号:	   {user_info.get('callsign')}")
+		print(f"[APRS_Service]  姓名:	   {user_info.get('fname', '')} {user_info.get('lname', '')}")
+		print(f"[APRS_Service]  国家:	   {user_info.get('country')}")
+		print(f"[APRS_Service]  州/省:	  {user_info.get('state')}")
+		print(f"[APRS_Service]  城市:	   {user_info.get('city')}")
+		print(f"[APRS_Service]  备注:   {user_info.get('remarks')}")
 		#cache[dmr_id] = user_info
 		#device_ssid=f"{user_info.get('callsign')}-H{device_id[-1]}"
 		#save_cache(cache)
 		return user_info.get('callsign')
 	except requests.RequestException as e:
-		print(f"[!] HTTP error: {e}")
+		print(f"[APRS_Service][!] HTTP error: {e}")
 	except ValueError as e:
-		print(f"[!] JSON parse error: {e}")
+		print(f"[APRS_Service][!] JSON parse error: {e}")
 
 
 def aprs_password(callsign: str) -> int:
@@ -111,9 +111,9 @@ def aprs_report(lat_input, lon_input, device_name, issiRadioId, device_id, devic
 		else:
 			CALLSIGN=device_ssid.split("-")[0]
 		APRS_PASSWORD=str(aprs_password(CALLSIGN))
-		print(f"issiRadioId:{issiRadioId},CALLSIGN:{CALLSIGN},APRS_PASSWORD:{APRS_PASSWORD}")
+		print(f"[APRS_Service]issiRadioId:{issiRadioId},CALLSIGN:{CALLSIGN},APRS_PASSWORD:{APRS_PASSWORD}")
 		if not CALLSIGN:
-			print("no valid CALLSIGN")
+			print("[APRS_Service]no valid CALLSIGN")
 			return None
 		decimal_lat = float(lat_input)
 		lat_dir = "N" if decimal_lat >= 0 else "S"
@@ -130,7 +130,7 @@ def aprs_report(lat_input, lon_input, device_name, issiRadioId, device_id, devic
 		lat = f"{lat_degrees:02d}{lat_minutes:05.2f}"
 		lon = f"{lon_degrees:03d}{lon_minutes:05.2f}"
 
-		print(f"device_ssid:{device_ssid}")
+		print(f"[APRS_Service]device_ssid:{device_ssid}")
 		frame_text=(f'{device_ssid}>PYTHON,TCPIP*,qAC,{device_ssid}:!{lat}{lat_dir}/{lon}{lon_dir}{SSID_ICON}APRS by Hytera MDM from {device_name} report').encode()
 		callsign = CALLSIGN.encode('utf-8')
 		password = APRS_PASSWORD.encode('utf-8')
@@ -148,12 +148,12 @@ def aprs_report(lat_input, lon_input, device_name, issiRadioId, device_id, devic
 		a.start()
 		aprs_return=a.send(frame_text)
 		if aprs_return==len(frame_text)+2:
-			print('APRS Report Good Length:%s'%aprs_return)
+			print('[APRS_Service]APRS Report Good Length:%s'%aprs_return)
 		else:
-			print('APRS Report Return:%s Frame Length: %s Bad Request..'%(aprs_return,frame_text))
+			print('[APRS_Service]APRS Report Return:%s Frame Length: %s Bad Request..'%(aprs_return,frame_text))
 		
 	except Exception as err:
-		print(f"APRS Report Error: {err}")
+		print(f"[APRS_Service]APRS Report Error: {err}")
 	finally:
 		return device_ssid
 

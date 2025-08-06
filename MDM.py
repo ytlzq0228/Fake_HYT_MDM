@@ -210,7 +210,7 @@ async def chunked_data_null(request: Request):
 @app.post("/nrm/androidTask/uploadLocationInfo")
 async def uploadLocationInfo(request: Request):
     body = await request.body()
-    print("Body:", body.decode())
+    print("[APRS_Service]Body:", body.decode())
 
     try:
         req_data = json.loads((await request.body()).decode())
@@ -232,18 +232,20 @@ async def uploadLocationInfo(request: Request):
         device_name = entry.get("deviceInfo", {}).get("wholeInfo", {}).get("alias", "")
         issiRadioId = entry.get("deviceInfo", {}).get("nbInfo", {}).get("issiRadioId", "")
         device_ssid = entry.get("location", {}).get("aprs_ssid")
+        print(f"[APRS_Service]entry.get(location).get(aprs_ssid):{device_ssid}")
         device_ssid=aprs_report(location_data["latitude"], location_data["longitude"], device_name, issiRadioId, device_id, device_ssid)
         if device_ssid:
+            print(f"[APRS_Service]aprs_report() get ssid {device_ssid}")
             entry["location"]["aprs_ssid"] = device_ssid
         #entry.setdefault("deviceId", device_id)
         entry["location"] = location_data
         entry["update_time"]= int(time.time())
         data_memory_cache.update_device_entry(device_id, entry)
-        print(f"[Cache] 上报位置 {device_id}")
+        print(f"[APRS_Service][Cache] 上报位置 {device_id}")
 
         
     except Exception as e:
-        print(f"[uploadLocationInfo] Logging error: {e}")
+        print(f"[APRS_Service][uploadLocationInfo] Logging error: {e}")
 
     return chunked_response({
         "code": "0",
