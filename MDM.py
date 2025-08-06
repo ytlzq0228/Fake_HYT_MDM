@@ -328,6 +328,12 @@ async def verify_device_sn(
         media_type="application/json"
     )
 
+@app.get("/change_aprs_ssid", response_class=HTMLResponse)
+async def change_aprs_ssid_form(request: Request, device_id: str = Query(...)):
+    return templates.TemplateResponse("change_aprs_ssid.html", {
+        "request": request,
+        "device_id": device_id
+    })
 
 @app.post("/change_aprs_ssid", response_class=HTMLResponse)
 async def change_aprs_ssid_submit(
