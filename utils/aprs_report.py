@@ -87,27 +87,34 @@ def aprs_password(callsign: str) -> int:
     返回：
         password: 整数形式，如 12345
     """
-    callsign = callsign.upper().split("-")[0]  # 去除 SSID 部分（如 N0CALL-1 → N0CALL）
-    hash_val = 0x73e2  # 初始值
-
-    for i, char in enumerate(callsign):
-        if i % 2 == 0:
-            hash_val ^= ord(char) << 8
-        else:
-            hash_val ^= ord(char)
-
-    return hash_val & 0x7FFF  # 结果只保留 15 位（兼容传统实现）
+    if callsign:
+    	callsign = callsign.upper().split("-")[0]  # 去除 SSID 部分（如 N0CALL-1 → N0CALL）
+    	hash_val = 0x73e2  # 初始值
+	
+    	for i, char in enumerate(callsign):
+    	    if i % 2 == 0:
+    	        hash_val ^= ord(char) << 8
+    	    else:
+    	        hash_val ^= ord(char)
+	
+    	return hash_val & 0x7FFF  # 结果只保留 15 位（兼容传统实现）
+    else:
+    	return None
 
 
 def aprs_report(lat_input, lon_input, device_name, issiRadioId, device_id, device_ssid=""):
 	try:
-		if device_ssid=="":
+		if not device_ssid:
 			CALLSIGN=get_CALLSIGN(issiRadioId)
-			device_ssid=f"{CALLSIGN}-H{device_id[-1]}"
+			if CALLSIGN:
+				device_ssid=f"{CALLSIGN}-H{device_id[-1]}"	
 		else:
 			CALLSIGN=device_ssid.split("-")[0]
 		APRS_PASSWORD=str(aprs_password(CALLSIGN))
 		print(f"issiRadioId:{issiRadioId},CALLSIGN:{CALLSIGN},APRS_PASSWORD:{APRS_PASSWORD}")
+		if not CALLSIGN:
+			print("no valid CALLSIGN")
+			return None
 		decimal_lat = float(lat_input)
 		lat_dir = "N" if decimal_lat >= 0 else "S"
 		lat_degrees = int(abs(decimal_lat))
@@ -132,7 +139,7 @@ def aprs_report(lat_input, lon_input, device_name, issiRadioId, device_id, devic
 		server_host = APRS_Server.encode('utf-8')  # 使用 rotate.aprs2.net 服务器和端口 14580
 
 		#----------------test_only------------------------
-		#return server_host
+		return device_ssid
 		#----------------test_only------------------------
 		
 		# 创建 TCP 对象并传入服务器信息
@@ -152,4 +159,4 @@ def aprs_report(lat_input, lon_input, device_name, issiRadioId, device_id, devic
 
 if __name__ == "__main__":
 	#print(aprs_password("BI1FQO"))
-	aprs_report("-23.56729", "-46.65940", "device_name", "4606666", "428")
+	print(aprs_report("-23.56729", "-46.65940", "device_name", "4606666", "428",None))

@@ -229,12 +229,12 @@ async def uploadLocationInfo(request: Request):
 
         device_name = entry.get("deviceInfo", {}).get("wholeInfo", {}).get("alias", "")
         issiRadioId = entry.get("deviceInfo", {}).get("nbInfo", {}).get("issiRadioId", "")
-        device_ssid = entry.get("location", {}).get("aprs_ssid", "")
+        device_ssid = entry.get("location", {}).get("aprs_ssid")
         device_ssid=aprs_report(location_data["latitude"], location_data["longitude"], device_name, issiRadioId, device_id, device_ssid)
-
+        if device_ssid:
+            entry["location"]["aprs_ssid"] = device_ssid
         #entry.setdefault("deviceId", device_id)
         entry["location"] = location_data
-        entry["location"]["aprs_ssid"] = device_ssid
         entry["update_time"]= int(time.time())
         data_memory_cache.update_device_entry(device_id, entry)
         print(f"[Cache] 上报位置 {device_id}")
