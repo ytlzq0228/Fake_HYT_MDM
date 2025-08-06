@@ -3,27 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <title>SN 验证</title>
-    <script>
-        async function submitForm(event) {
-            event.preventDefault();
+<script src="https://cdn.jsdelivr.net/npm/jssha/dist/sha256.min.js"></script>
+<script>
+    function submitForm(event) {
+        event.preventDefault();
 
-            const sn = document.getElementById('sn').value;
-            const deviceid = document.getElementById('deviceid').value;
-            const timestamp = Math.floor(Date.now() / 1000).toString();  // 当前时间戳（秒）
+        const sn = document.getElementById('sn').value;
+        const deviceid = document.getElementById('deviceid').value;
+        const timestamp = Math.floor(Date.now() / 1000).toString();
 
-            const textToHash = sn + timestamp;
-            const encoder = new TextEncoder();
-            const data = encoder.encode(textToHash);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            const sn_hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        const shaObj = new jsSHA("SHA-256", "TEXT");
+        shaObj.update(sn + timestamp);
+        const sn_hash = shaObj.getHash("HEX");
 
-            // 构造 GET URL 参数
-            const url = `/device/deviceinfo?deviceid=${encodeURIComponent(deviceid)}&timestamp=${timestamp}&sn_hash=${sn_hash}`;
-
-            window.location.href = url;
-        }
-    </script>
+        const url = `/device/deviceinfo?deviceid=${encodeURIComponent(deviceid)}&timestamp=${timestamp}&sn_hash=${sn_hash}`;
+        window.location.href = url;
+    }
+</script>
 </head>
 <body>
     <h2>设备详细信息包含敏感内容，请机主本人验证 SN 序列号</h2>
