@@ -132,7 +132,7 @@ def aprs_report(lat_input, lon_input, device_name, issiRadioId, device_id, devic
 		server_host = APRS_Server.encode('utf-8')  # 使用 rotate.aprs2.net 服务器和端口 14580
 
 		#----------------test_only------------------------
-		return server_host
+		#return server_host
 		#----------------test_only------------------------
 		
 		# 创建 TCP 对象并传入服务器信息
