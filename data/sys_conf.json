@@ -1,0 +1,5 @@
+{
+	"http_service_port": "2232",
+	"tcp_service_port": "2233",
+	"server_ip": "mdm.ctsdn.com"
+}
