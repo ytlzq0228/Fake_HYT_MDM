@@ -12,10 +12,10 @@
 <body>
     <!-- 右上角二维码-->
     <a href="/" title="点击返回首页">
-        <div id="dashboard-qrcode" style="position: absolute; top: 5px; right: 5px; width: 70px; height: 70px; cursor: pointer;"></div>
+        <div id="dashboard-qrcode" style="position: absolute; top: 5px; right: 5px; width: 70px; height: 70px; cursor: pointer; z-index: 10;"></div>
     </a>
 
-<div class="map-toggle" style="position: absolute; top: 5px; right: 80px;">
+<div class="map-toggle" style="position: absolute; top: 5px; right: 80px; z-index: 10;">
     <a class="map-button {% if map_type == 'baidu' %}active{% else %}inactive{% endif %}" 
        href="/dashboard?map=baidu{% if request.query_params.get('filter_device') %}&filter_device={{ request.query_params.get('filter_device') }}{% endif %}">
         百度地图
