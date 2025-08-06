@@ -9,7 +9,7 @@
       "netDiskUrl": "http://mdm.ctsdn.com:8080/NetDiskWeb",
       "usageMode": "0",
       "mdmPort": "2232",
-      "sesIp": "10.0.200.97",
+      "sesIp": "mdm.ctsdn.com",
       "checkResult": "0",
       "mdmScheme": "http",
       "isMasterSlaveModel": "0",
@@ -20,7 +20,7 @@
     "msg":"",
     "code":"",
     "data":{
-      "ip":"10.0.200.97",
+      "ip":"mdm.ctsdn.com",
       "port":"2233",
       "sslPort":"9997",
       "channelId":"",
