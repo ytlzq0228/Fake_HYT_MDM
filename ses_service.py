@@ -65,13 +65,10 @@ def build_response_9_data(user_name: str = "") -> dict:
     content = {
         "CommandUUID": command_uuid,
         "body": {
-            "RequestType": "backupData",
-            "msgDate": now_str,
             "msgType": "read_frequencySilent",
             "reExecuteTimes": 0,
-            "taskId": "49770174638d4bde80f25a4f132b9b40",
-            "taskType": "5",
-            "bussinessPassword": ""
+            "msgDate": now_str,
+            "RequestType": "backupData"
         },
         "type": "HyteraCommand"
     }
@@ -113,10 +110,9 @@ def handle_client(conn, addr):
                     print("[<] Sent msgType 6")
                 elif msg_type == 4:
                     # 发送第二条
-                    #conn.sendall((json.dumps(build_response_9(user_name=name)) + "\n").encode("utf-8"))
-                    sent_comm=(json.dumps(build_response_9_data(user_name=name)) + "\n").encode("utf-8")
-                    conn.sendall(sent_comm)
-                    print(f"[<] Sent msgType 9{sent_comm}")
+                    conn.sendall((json.dumps(build_response_9(user_name=name)) + "\n").encode("utf-8"))
+                    #conn.sendall((json.dumps(build_response_9_data(user_name=name)) + "\n").encode("utf-8"))
+                    print("[<] Sent msgType 9")
                 elif msg_type == 8:
                     print("[>] Received Command ACK Good!")
                 else:
