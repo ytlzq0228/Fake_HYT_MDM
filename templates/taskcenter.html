@@ -36,12 +36,28 @@
     .pill { padding: 2px 8px; border-radius: 999px; background: #eee; font-size: 12px; color: #444; }
     .empty { color: #888; font-style: italic; padding: 8px 0; }
     details summary { cursor: pointer; }
+    .btn-dashboard {
+    margin-left: 12px;
+    padding: 4px 8px;
+    background-color: #3498db;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 0.9em;
+    }
+    .btn-dashboard:hover {
+        background-color: #2980b9;
+    }
   </style>
 </head>
 <body>
   <header>
     <div>任务中心<span class="tag">/admin/taskcenter</span></div>
-    <div class="user">当前用户：<strong>{{ username }}</strong></div>
+    <div class="user">
+      当前用户：<strong>{{ username }}</strong>
+      <a href="/dashboard" class="btn-dashboard">返回 Dashboard</a>
+    </div>
+
   </header>
 
   <main class="grid">
