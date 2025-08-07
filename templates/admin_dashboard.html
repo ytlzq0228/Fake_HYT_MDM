@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>管理员后台</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .device-card {
+            border: 1px solid #ddd;
+            padding: 15px 20px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+            background-color: #fafafa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .device-info {
+            font-size: 16px;
+        }
+
+        .device-actions a {
+            padding: 6px 12px;
+            background-color: #007acc;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .device-actions a:hover {
+            background-color: #005f99;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 30px;
+            text-decoration: none;
+            color: #007acc;
+            font-weight: bold;
+        }
+
+        .password-change {
+            margin-top: 40px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .form-group button {
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .form-group button:hover {
+            background-color: #218838;
+        }
+
+        .error-msg {
+            color: red;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .success-msg {
+            color: green;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+    </style>
+    <script>
+        async function hashAndSubmitChangePassword(event) {
+            event.preventDefault();
+            const form = event.target;
+            const username = form.username.value;
+            const oldPassword = form.old_password.value;
+            const newPassword = form.new_password.value;
+            const confirmPassword = form.confirm_password.value;
+    
+            if (newPassword !== confirmPassword) {
+                alert("两次输入的新密码不一致");
+                return;
+            }
+    
+            // 计算 old_password_hash 和 new_password_hash
+            const encodeHash = async (text) => {
+                const encoder = new TextEncoder();
+                const data = encoder.encode(text);
+                const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            };
+    
+            const old_password_hash = await encodeHash(oldPassword);
+            const new_password_hash = await encodeHash(newPassword);
+    
+            const formData = new FormData();
+            formData.append("username", username);
+            formData.append("old_password_hash", old_password_hash);
+            formData.append("new_password_hash", new_password_hash);
+    
+            const response = await fetch("/admin/change_password", {
+                method: "POST",
+                body: formData
+            });
+    
+            const html = await response.text();
+            document.open();
+            document.write(html);
+            document.close();
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h2>管理员 {{ username }} 的设备列表</h2>
+
+        {% if devices %}
+            {% for device_id, entry in devices.items() %}
+                <div class="device-card">
+                    <div class="device-info">
+                        {{ entry.deviceInfo.wholeInfo.alias if entry.deviceInfo and entry.deviceInfo.wholeInfo and entry.deviceInfo.wholeInfo.alias else device_id }}
+                        <br>
+                        <small>ID: {{ device_id }}</small>
+                    </div>
+                    <div class="device-actions">
+                        <a href="/device?deviceid={{ device_id }}">查看详情</a>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p style="text-align: center;">暂无可用设备，请刷新页面</p>
+        {% endif %}
+        <div class="password-change">
+            <h3>修改密码</h3>
+            {% if message %}
+                <div class="{{ 'success-msg' if success else 'error-msg' }}">{{ message }}</div>
+            {% endif %}
+        <form onsubmit="hashAndSubmitChangePassword(event)">
+            <input type="hidden" name="username" value="{{ username }}">
+            <div class="form-group">
+                <label for="old_password">当前密码</label>
+                <input type="password" name="old_password" required>
+            </div>
+            <div class="form-group">
+                <label for="new_password">新密码</label>
+                <input type="password" name="new_password" required>
+            </div>
+            <div class="form-group">
+                <label for="confirm_password">确认新密码</label>
+                <input type="password" name="confirm_password" required>
+            </div>
+            <div class="form-group">
+                <button type="submit">修改密码</button>
+            </div>
+        </form>
+        </div>
+        <a href="/dashboard" class="back-link">← 返回 Dashboard</a>
+    </div>
+</body>
+</html>
