@@ -2,7 +2,7 @@
   "Default_Task": [
     {
       "name": "Task1_GeneralStatusReport",
-      "interval": 140
+      "interval": 120
     }
   ],
   "TaskConfig": {
@@ -10,7 +10,7 @@
       "CommandUUID": "",
       "body": {
         "msgType": "deviceControlMsg",
-        "reExecuteTimes": 0,
+        "reExecuteTimes": 1,
         "msgDate": "",
         "RequestType": "MultipleCommad"
       },
@@ -31,9 +31,49 @@
     "00861067070143638": [
       {
         "task": "Task1_GeneralStatusReport",
-        "CommandUUID": "7b2b2def06974bdb83916a4ba8770bef",
+        "CommandUUID": "ed68681687334ea8870fc8e736f7f9ac",
         "interval": 120,
-        "lastExecuted": 1754598355.060864,
+        "lastExecuted": 1754602888.6748734,
+        "oneTime": false,
+        "consumed": false
+      }
+    ],
+    "00865068030214960": [
+      {
+        "task": "Task1_GeneralStatusReport",
+        "CommandUUID": "a824e2452f854d50ae5dec8ea9f8ad53",
+        "interval": 120,
+        "lastExecuted": 1754602944.6909769,
+        "oneTime": false,
+        "consumed": false
+      }
+    ],
+    "00865068030215157": [
+      {
+        "task": "Task1_GeneralStatusReport",
+        "CommandUUID": "f55e28824d3d4e198b2340d1a3442f94",
+        "interval": 120,
+        "lastExecuted": 1754602855.9693348,
+        "oneTime": false,
+        "consumed": true
+      }
+    ],
+    "00869102040011169": [
+      {
+        "task": "Task1_GeneralStatusReport",
+        "CommandUUID": "714b38b26f2345c6a4923cb7aa0a9a21",
+        "interval": 120,
+        "lastExecuted": 1754602900.6781797,
+        "oneTime": false,
+        "consumed": false
+      }
+    ],
+    "00860139040799590": [
+      {
+        "task": "Task1_GeneralStatusReport",
+        "CommandUUID": "feaad723768b41bab411168a495eecfb",
+        "interval": 120,
+        "lastExecuted": 1754602891.6762767,
         "oneTime": false,
         "consumed": false
       }
