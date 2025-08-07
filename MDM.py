@@ -143,9 +143,12 @@ async def login(request: Request):
     try:
         with RESPONSE_PATH.open("r", encoding="utf-8") as f:
             response_data = json.load(f)["login"]
+        #response_data["data"]["token"]=uuid.uuid4().hex
+        #response_data["data"]["ip"]=GLOBAL_CONFIG.get("server_ip")
+        #response_data["data"]["port"]=GLOBAL_CONFIG.get("tcp_service_port")
         response_data["data"]["token"]=uuid.uuid4().hex
-        response_data["data"]["ip"]=GLOBAL_CONFIG.get("server_ip")
-        response_data["data"]["port"]=GLOBAL_CONFIG.get("tcp_service_port")
+        response_data["data"]["ip"]="122.9.161.134"
+        response_data["data"]["port"]="9999"
     except Exception as e:
         print(f"[ERROR] 无法加载响应文件: {e}")
         response_data = {"code": "500", "success": "false", "msg": "内部错误", "data": None}
