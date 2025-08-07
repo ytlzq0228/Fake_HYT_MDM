@@ -1,28 +1,29 @@
-import os
-import json
-import threading
-import uuid
-import time
+# 标准库
 import hashlib
-from pathlib import Path
-from fastapi import FastAPI, Request, Query, Form, Cookie
-from fastapi.responses import HTMLResponse,PlainTextResponse,JSONResponse,RedirectResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import FileResponse
-from fastapi import FastAPI, Request
-from fastapi.responses import Response
-from email.utils import formatdate
+import json
+import os
+import secrets
+import threading
+import time
+import uuid
 from datetime import datetime
-from ses_service import ses_server
-
-from utils.aprs_report import aprs_report
-from utils.responses import fixed_json_response, chunked_response
-from utils import data_memory_cache
+from email.utils import formatdate
+from pathlib import Path
 from typing import Optional
 
+# 第三方库
+from fastapi import FastAPI, Form, Query, Request, Cookie
+from fastapi.responses import HTMLResponse,JSONResponse,PlainTextResponse,RedirectResponse,FileResponse,Response
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from itsdangerous import TimestampSigner, BadSignature, SignatureExpired
-import secrets
+
+# 本地模块
+from utils import data_memory_cache
+from utils.aprs_report import aprs_report
+from utils.ses_service import ses_server
+from utils.responses import fixed_json_response, chunked_response
+from utils.task_center import start_task_center, task_exists_for_device, add_device_default_tasks
 
 
 
@@ -54,6 +55,8 @@ def startup_tasks():
     # 启动 SES 服务
     thread = threading.Thread(target=ses_server, daemon=True)
     thread.start()
+
+    start_task_center()
 
     # 启动缓存管理器
     data_memory_cache.start_device_cache_manager()
@@ -98,6 +101,23 @@ async def check_device_sn(request: Request):
 async def login(request: Request):
     body = await request.body()
     print("Body:", body.decode())
+    
+    try:
+        payload = json.loads(body)
+        device_name = payload.get("deviceId", "").strip()
+    except Exception as e:
+        print(f"[ERROR] 登录请求解析失败: {e}")
+        return fixed_json_response({"code": "400", "success": "false", "msg": "无效请求", "data": None})
+
+    print(f"[LOGIN] Device '{device_name}' 尝试登录")
+
+    if device_name and not task_exists_for_device(device_name):
+        print(f"[TASK] 新设备 {device_name}，添加默认任务")
+        try:
+            add_device_default_tasks(device_name)
+        except Exception as e:
+            print(f"[ERROR] 添加默认任务失败: {e}")
+
     # 返回固定响应
     try:
         with RESPONSE_PATH.open("r", encoding="utf-8") as f:
