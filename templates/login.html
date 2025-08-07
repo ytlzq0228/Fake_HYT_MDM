@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>管理员登录</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 40px;
+        }
+        .form-container {
+            background: #fff;
+            padding: 20px;
+            max-width: 320px;
+            margin: auto;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            text-align: left;
+        }
+        .form-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .form-group label {
+            width: 100px;
+            font-weight: bold;
+        }
+        .form-group input {
+            flex: 1;
+            padding: 6px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007acc;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #005f99;
+        }
+        .error-message {
+            color: red;
+            text-align: center;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+    <script>
+        async function hashAndSubmit(event) {
+            event.preventDefault();
+            const form = event.target;
+
+            const username = form.username.value;
+            const password = form.password.value;
+
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const password_hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+            const formData = new FormData();
+            formData.append("username", username);
+            formData.append("password_hash", password_hash);
+
+            const response = await fetch("/admin/login", {
+                method: "POST",
+                body: formData,
+            });
+
+            if (response.redirected) {
+                window.location.href = response.url;
+            } else {
+                const html = await response.text();
+                document.open();
+                document.write(html);
+                document.close();
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="form-container">
+        <h2 style="text-align:center;">管理员登录</h2>
+        <form onsubmit="hashAndSubmit(event)">
+            <div class="form-group">
+                <label>用户名:</label>
+                <input type="text" name="username" required>
+            </div>
+            <div class="form-group">
+                <label>密码:</label>
+                <input type="password" name="password" required>
+            </div>
+            <button type="submit">登录</button>
+        </form>
+
+        {% if error %}
+        <div class="error-message">{{ error }}</div>
+        {% endif %}
+    </div>
+</body>
+</html>

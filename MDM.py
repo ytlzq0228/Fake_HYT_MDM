@@ -5,8 +5,8 @@ import uuid
 import time
 import hashlib
 from pathlib import Path
-from fastapi import FastAPI, Request, Query, Form
-from fastapi.responses import HTMLResponse,PlainTextResponse,JSONResponse
+from fastapi import FastAPI, Request, Query, Form, Cookie
+from fastapi.responses import HTMLResponse,PlainTextResponse,JSONResponse,RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import FileResponse
@@ -21,14 +21,33 @@ from utils.responses import fixed_json_response, chunked_response
 from utils import data_memory_cache
 from typing import Optional
 
-app = FastAPI()
+from itsdangerous import TimestampSigner, BadSignature, SignatureExpired
+import secrets
 
-GLOBAL_CONFIG=json.loads(Path("data/sys_conf.json").read_text(encoding="utf-8"))
+
+
+app = FastAPI()
+GLOBAL_CONFIG_PATH = Path("data/sys_conf.json")
+GLOBAL_CONFIG=json.loads(Path(GLOBAL_CONFIG_PATH).read_text(encoding="utf-8"))
 
 RESPONSE_PATH = Path("static/response.json")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
+#signer = TimestampSigner("doubi_mdm_5152277wlwlbb")
+# 启动时生成一个随机的 secret key（每次重启都会变）
+SECRET_KEY = secrets.token_hex(32)  # 64位十六进制字符串
+signer = TimestampSigner(SECRET_KEY)
+
+def get_logged_in_user(request: Request):
+    token = request.cookies.get("admin_token")
+    if not token:
+        return None
+    try:
+        username = signer.unsign(token, max_age=1800).decode()
+        return username
+    except (BadSignature, SignatureExpired):
+        return None
 
 @app.on_event("startup")
 def startup_tasks():
@@ -272,12 +291,13 @@ async def index(request: Request):
     })
 
 @app.get("/dashboard", response_class=HTMLResponse)
-async def dashboard(request: Request, filter_device: Optional[str] = None, map: Optional[str] = "baidu"):
+async def dashboard(request: Request, filter_device: Optional[str] = None, map: Optional[str] = None):
     devices = data_memory_cache.get_device_cache()
     devices_all = data_memory_cache.get_device_cache()
     current_time = int(time.time())
     server_ip = GLOBAL_CONFIG.get("server_ip", "")
     server_port = GLOBAL_CONFIG.get("http_service_port", "")
+    user = get_logged_in_user(request)
 
     for i in devices:
         if "update_time" not in devices[i]:
@@ -289,6 +309,20 @@ async def dashboard(request: Request, filter_device: Optional[str] = None, map: 
             k: v for k, v in devices.items()
             if k == filter_device
         }
+    # 如果登录了管理员
+    if user and user in GLOBAL_CONFIG.get("sys_admin", {}):
+        if map:
+            # 更新当前用户的 map_type 并写回配置
+            GLOBAL_CONFIG["sys_admin"][user]["map_type"] = map
+            Path(GLOBAL_CONFIG_PATH).write_text(
+                json.dumps(GLOBAL_CONFIG, indent=2, ensure_ascii=False),
+                encoding="utf-8"
+            )
+        else:
+            # 如果未传入 map 参数，但用户配置中已有 map_type，则使用之
+            map = GLOBAL_CONFIG["sys_admin"][user].get("map_type", "baidu")
+    else:
+        map = map or "baidu"
 
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
@@ -297,20 +331,63 @@ async def dashboard(request: Request, filter_device: Optional[str] = None, map: 
         "devices": devices,
         "devices_all": devices_all,
         "now": current_time,
+        "logged_in_user": user,
         "map_type": map  # 新增传递地图类型
     })
 
-@app.get("/device", response_class=HTMLResponse)
-async def view_device(request: Request, deviceid: str = Query(...)):
-    entry = data_memory_cache.get_device_entry(deviceid)
-    devicename=entry["deviceInfo"]["wholeInfo"]["alias"]
+#@app.get("/device", response_class=HTMLResponse)
+#async def view_device(request: Request, deviceid: str = Query(...)):
+#    entry = data_memory_cache.get_device_entry(deviceid)
+#    devicename=entry["deviceInfo"]["wholeInfo"]["alias"]
+#
+#    if not entry:
+#        return HTMLResponse(f"<h2>设备 {deviceid} 不存在</h2>", status_code=404)
+#
+#    if "sn" not in entry:
+#        return HTMLResponse(f"<h2>设备 {deviceid} 没有 SN 信息，无法验证</h2>", status_code=400)
+#
+#    return templates.TemplateResponse("device_verify.html", {
+#        "request": request,
+#        "deviceid": deviceid,
+#        "devicename": devicename,
+#        "sn": entry["sn"]
+#    })
 
+@app.get("/device", response_class=HTMLResponse)
+async def view_device(
+    request: Request,
+    deviceid: str = Query(...),
+    admin_token: str = Cookie(None)
+):
+    entry = data_memory_cache.get_device_entry(deviceid)
     if not entry:
         return HTMLResponse(f"<h2>设备 {deviceid} 不存在</h2>", status_code=404)
+
+    devicename = entry.get("deviceInfo", {}).get("wholeInfo", {}).get("alias", deviceid)
 
     if "sn" not in entry:
         return HTMLResponse(f"<h2>设备 {deviceid} 没有 SN 信息，无法验证</h2>", status_code=400)
 
+    # --- token 验证逻辑 ---
+    if admin_token:
+        try:
+            username = signer.unsign(admin_token, max_age=1800).decode()
+            allowed = GLOBAL_CONFIG.get("sys_admin", {}).get(username, {}).get("devices", [])
+
+            if "any" in allowed or deviceid in allowed:
+                # 构造哈希跳转 URL，绕过验证页
+                timestamp = int(time.time())
+                sn = entry["sn"]
+                sn_hash = hashlib.sha256((sn + str(timestamp)).encode("utf-8")).hexdigest()
+
+                redirect_url = f"/device/deviceinfo?deviceid={deviceid}&timestamp={timestamp}&sn_hash={sn_hash}"
+                return RedirectResponse(url=redirect_url)
+        except BadSignature:
+            pass
+        except Exception as e:
+            print(f"[admin_token 验证失败] {e}")
+
+    # 否则显示 SN 验证页面
     return templates.TemplateResponse("device_verify.html", {
         "request": request,
         "deviceid": deviceid,
@@ -392,6 +469,98 @@ async def change_aprs_ssid_submit(
         <button style="margin-top: 10px;">返回 Dashboard</button>
     </a>
 """, status_code=200)
+
+@app.get("/admin/login", response_class=HTMLResponse)
+async def login_page(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
+
+@app.post("/admin/login")
+async def admin_login(
+    request: Request,
+    username: str = Form(...),
+    password_hash: str = Form(...)
+):
+    # 获取管理员信息
+    admin_info = GLOBAL_CONFIG.get("sys_admin", {}).get(username)
+
+    if not admin_info:
+        return templates.TemplateResponse("login.html", {"request": request, "error": "用户名错误"})
+
+    # 获取对应的哈希密码
+    expected_hash = admin_info.get("password")
+    if not expected_hash or password_hash != expected_hash:
+        return templates.TemplateResponse("login.html", {"request": request, "error": "密码错误"})
+
+    # 登录成功，生成 token
+    token = signer.sign(username.encode()).decode()
+    response = RedirectResponse(url="/dashboard", status_code=302)
+    response.set_cookie("admin_token", token, max_age=1800, httponly=True)
+    return response
+
+
+@app.get("/admin/dashboard", response_class=HTMLResponse)
+async def admin_dashboard(request: Request):
+    username = get_logged_in_user(request)
+    if not username:
+        return RedirectResponse("/admin/login")
+
+    allowed_devices = GLOBAL_CONFIG["sys_admin"].get(username, {}).get("devices", [])
+    if "any" in allowed_devices:
+        device_ids = list(data_memory_cache.get_device_cache().keys())
+    else:
+        device_ids = allowed_devices
+
+    devices = {
+        device_id: data_memory_cache.get_device_entry(device_id)
+        for device_id in device_ids
+        if data_memory_cache.get_device_entry(device_id) is not None
+    }
+
+    return templates.TemplateResponse("admin_dashboard.html", {
+        "request": request,
+        "username": username,
+        "devices": devices
+    })
+
+@app.post("/admin/change_password", response_class=HTMLResponse)
+async def change_password(
+    request: Request,
+    username: str = Form(...),
+    old_password_hash: str = Form(...),
+    new_password_hash: str = Form(...)
+):
+    sys_admin = GLOBAL_CONFIG.get("sys_admin", {})
+    user_entry = sys_admin.get(username)
+
+    if not user_entry:
+        return templates.TemplateResponse("admin_dashboard.html", {
+            "request": request,
+            "username": username,
+            "devices": {},
+            "success": False,
+            "message": "用户不存在"
+        })
+
+    current_password_hash = user_entry.get("password")
+    if current_password_hash != old_password_hash:
+        return templates.TemplateResponse("admin_dashboard.html", {
+            "request": request,
+            "username": username,
+            "devices": {},
+            "success": False,
+            "message": "原密码不正确"
+        })
+
+    # 更新密码
+    user_entry["password"] = new_password_hash
+    GLOBAL_CONFIG_PATH.write_text(json.dumps(GLOBAL_CONFIG, indent=2, ensure_ascii=False), encoding="utf-8")
+    return templates.TemplateResponse("admin_dashboard.html", {
+        "request": request,
+        "username": username,
+        "devices": {},  # 如果你希望重新加载设备信息，可在此查询
+        "success": True,
+        "message": "密码修改成功"
+    })
 
 
 @app.api_route("/{full_path:path}", methods=["GET", "POST", "PUT", "DELETE"])

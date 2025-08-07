@@ -1,38 +1,116 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <title>SN 验证</title>
-<script src="https://cdn.jsdelivr.net/npm/jssha/dist/sha256.min.js"></script>
-<script>
-    function submitForm(event) {
-        event.preventDefault();
+    <script src="https://cdn.jsdelivr.net/npm/jssha/dist/sha256.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 40px;
+        }
 
-        const sn = document.getElementById('sn').value;
-        const deviceid = document.getElementById('deviceid').value;
-        const timestamp = Math.floor(Date.now() / 1000).toString();
+        .form-container {
+            background: #fff;
+            padding: 20px;
+            max-width: 360px;
+            margin: auto;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            text-align: left;
+        }
 
-        const shaObj = new jsSHA("SHA-256", "TEXT");
-        shaObj.update(sn + timestamp);
-        const sn_hash = shaObj.getHash("HEX");
+        .form-container h2 {
+            text-align: center;
+            font-size: 20px;
+        }
 
-        const url = `/device/deviceinfo?deviceid=${encodeURIComponent(deviceid)}&timestamp=${timestamp}&sn_hash=${sn_hash}`;
-        window.location.href = url;
-    }
-</script>
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .form-group input {
+            padding: 8px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007acc;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 12px;
+        }
+
+        button:hover {
+            background-color: #005f99;
+        }
+
+        .bottom-link {
+            text-align: center;
+            margin-top: 24px;
+        }
+
+        .bottom-link a {
+            color: #007acc;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .bottom-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+
+    <script>
+        function submitForm(event) {
+            event.preventDefault();
+
+            const sn = document.getElementById('sn').value;
+            const deviceid = document.getElementById('deviceid').value;
+            const timestamp = Math.floor(Date.now() / 1000).toString();
+
+            const shaObj = new jsSHA("SHA-256", "TEXT");
+            shaObj.update(sn + timestamp);
+            const sn_hash = shaObj.getHash("HEX");
+
+            const url = `/device/deviceinfo?deviceid=${encodeURIComponent(deviceid)}&timestamp=${timestamp}&sn_hash=${sn_hash}`;
+            window.location.href = url;
+        }
+    </script>
 </head>
 <body>
-    <h2>设备详细信息包含敏感内容，请机主本人验证 SN 序列号</h2>
-    <p>验证设备 {{ deviceid }}</p>
-    <p>设备别名 {{ devicename }}</p>
+    <div class="form-container">
+        <h2>设备详细信息验证</h2>
 
-    <form onsubmit="submitForm(event)">
-        <input type="hidden" id="deviceid" name="deviceid" value="{{ deviceid }}">
-        <label for="sn">SN:</label>
-        <input type="text" id="sn" name="sn" required>
-        <button type="submit">验证并查看设备信息</button>
-    </form>
+        <p><strong>设备 ID:</strong> {{ deviceid }}</p>
+        <p><strong>设备别名:</strong> {{ devicename }}</p>
 
-    <p>验证成功后将返回设备 JSON 信息</p>
+        <form onsubmit="submitForm(event)">
+            <input type="hidden" id="deviceid" name="deviceid" value="{{ deviceid }}">
+            <div class="form-group">
+                <label for="sn">请输入 SN:</label>
+                <input type="text" id="sn" name="sn" required>
+            </div>
+            <button type="submit">验证并查看设备信息</button>
+        </form>
+
+        <div class="bottom-link">
+            <a href="/admin/login">前往管理员登录页面</a>
+        </div>
+    </div>
 </body>
 </html>

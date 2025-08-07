@@ -1,5 +1,15 @@
 {
-	"http_service_port": "2232",
-	"tcp_service_port": "2233",
-	"server_ip": "mdm.ctsdn.com"
+  "http_service_port": "2232",
+  "tcp_service_port": "2233",
+  "server_ip": "mdm.ctsdn.com",
+  "sys_admin": {
+    "admin": {
+      "password": "d9cf7f2ff308f68335e112aa157228964906c755597aba79e9c978e4077df8af",
+      "devices": [
+        "any",
+        "00861067070143638"
+      ],
+      "map_type": "openstreet"
+    }
+  }
 }

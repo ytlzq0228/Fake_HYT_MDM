@@ -10,21 +10,35 @@
     {% endif %}
 </head>
 <body>
+
+    <!-- 登录状态按钮 -->
+    <div class="map-toggle" style="position: absolute; top: 25px; right: 300px; z-index: 10;">
+        {% if logged_in_user %}
+            <a href="/admin/dashboard" style="background-color: #007acc; color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-weight:   bold;">
+                {{ logged_in_user }}
+            </a>
+        {% else %}
+            <a href="/admin/login" style="background-color: #ccc; color: #333; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-weight: bold;">
+                登录
+            </a>
+        {% endif %}
+    </div>
+
     <!-- 右上角二维码-->
     <a href="/" title="点击返回首页">
         <div id="dashboard-qrcode" style="position: absolute; top: 5px; right: 5px; width: 70px; height: 70px; cursor: pointer; z-index: 10;"></div>
     </a>
 
-<div class="map-toggle" style="position: absolute; top: 5px; right: 80px; z-index: 10;">
-    <a class="map-button {% if map_type == 'baidu' %}active{% else %}inactive{% endif %}" 
-       href="/dashboard?map=baidu{% if request.query_params.get('filter_device') %}&filter_device={{ request.query_params.get('filter_device') }}{% endif %}">
-        百度地图
-    </a>
-    <a class="map-button {% if map_type == 'openstreet' %}active{% else %}inactive{% endif %}" 
-       href="/dashboard?map=openstreet{% if request.query_params.get('filter_device') %}&filter_device={{ request.query_params.get('filter_device') }}{% endif %}">
-        OpenStreet
-    </a>
-</div>
+    <div class="map-toggle" style="position: absolute; top: 5px; right: 80px; z-index: 10;">
+        <a class="map-button {% if map_type == 'baidu' %}active{% else %}inactive{% endif %}" 
+           href="/dashboard?map=baidu{% if request.query_params.get('filter_device') %}&filter_device={{ request.query_params.get('filter_device') }}{% endif %}">
+            百度地图
+        </a>
+        <a class="map-button {% if map_type == 'openstreet' %}active{% else %}inactive{% endif %}" 
+           href="/dashboard?map=openstreet{% if request.query_params.get('filter_device') %}&filter_device={{ request.query_params.get('filter_device') }}{% endif  %}">
+            OpenStreet
+        </a>
+    </div>
 
 <div class="dashboard-header">
     <h1>Registered Devices (Updated in 5 Days)</h1>
