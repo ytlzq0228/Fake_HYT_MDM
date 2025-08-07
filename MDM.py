@@ -35,7 +35,8 @@ RESPONSE_PATH = Path("static/response.json")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
-#signer = TimestampSigner("doubi_mdm_5152277wlwlbb")
+GLOBAL_mdmCertMd5=uuid.uuid4().hex
+
 # 启动时生成一个随机的 secret key（每次重启都会变）
 SECRET_KEY = secrets.token_hex(32)  # 64位十六进制字符串
 signer = TimestampSigner(SECRET_KEY)
@@ -112,7 +113,7 @@ async def check_device_sn(request: Request):
         response_data["data"]["sesPort"]=GLOBAL_CONFIG.get("http_service_port")
         response_data["data"]["mdmPort"]=GLOBAL_CONFIG.get("http_service_port")
         response_data["data"]["sesIp"]=GLOBAL_CONFIG.get("server_ip")
-        response_data["data"]["mdmCertMd5"]=uuid.uuid4().hex
+        response_data["data"]["mdmCertMd5"]=GLOBAL_mdmCertMd5
     except Exception as e:
         print(f"[ERROR] 无法加载响应文件: {e}")
         response_data = {"code": "500", "success": "false", "msg": "内部错误", "data": None}
@@ -143,12 +144,9 @@ async def login(request: Request):
     try:
         with RESPONSE_PATH.open("r", encoding="utf-8") as f:
             response_data = json.load(f)["login"]
-        #response_data["data"]["token"]=uuid.uuid4().hex
-        #response_data["data"]["ip"]=GLOBAL_CONFIG.get("server_ip")
-        #response_data["data"]["port"]=GLOBAL_CONFIG.get("tcp_service_port")
         response_data["data"]["token"]=uuid.uuid4().hex
-        response_data["data"]["ip"]="122.9.161.134"
-        response_data["data"]["port"]="9999"
+        response_data["data"]["ip"]=GLOBAL_CONFIG.get("server_ip")
+        response_data["data"]["port"]=GLOBAL_CONFIG.get("tcp_service_port")
     except Exception as e:
         print(f"[ERROR] 无法加载响应文件: {e}")
         response_data = {"code": "500", "success": "false", "msg": "内部错误", "data": None}
@@ -267,7 +265,7 @@ async def chunked_data_null(request: Request):
         #print("Body:", body.decode())
     except Exception as e:
         print(f"Logging error: {e}") 
-    return None
+    #return None
     #无关上报日志太多了，考虑不返回
     return chunked_response({
         "code": "0",
