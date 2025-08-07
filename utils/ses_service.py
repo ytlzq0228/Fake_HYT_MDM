@@ -59,33 +59,6 @@ RESPONSE_6 = {
     })
 }
 
-def build_response_9(user_name: str = "") -> dict:
-    command_uuid = get_cached_uuid()
-    now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    content = {
-        "CommandUUID": command_uuid,
-        "body": {
-            "msgType": "deviceControlMsg",
-            "reExecuteTimes": 0,
-            "msgDate": now_str,
-            "RequestType": "MultipleCommad"
-        },
-        "type": "HyteraCommand"
-    }
-
-    msg_content = {
-        "UserName": user_name,
-        "content": json.dumps(content),
-        "fromName": "push",
-        "CommandUUID": command_uuid
-    }
-
-    return {
-        "msgType": 9,
-        "msgContent": json.dumps(msg_content)
-    }
-
 
 def handle_client(conn, addr):
     print(f"[+] Connection from {addr}")

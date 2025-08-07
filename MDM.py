@@ -112,6 +112,7 @@ async def check_device_sn(request: Request):
         response_data["data"]["sesPort"]=GLOBAL_CONFIG.get("http_service_port")
         response_data["data"]["mdmPort"]=GLOBAL_CONFIG.get("http_service_port")
         response_data["data"]["sesIp"]=GLOBAL_CONFIG.get("server_ip")
+        response_data["data"]["mdmCertMd5"]=uuid.uuid4().hex
     except Exception as e:
         print(f"[ERROR] 无法加载响应文件: {e}")
         response_data = {"code": "500", "success": "false", "msg": "内部错误", "data": None}
