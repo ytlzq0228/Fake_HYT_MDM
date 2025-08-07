@@ -1,0 +1,42 @@
+{
+  "Default_Task": [
+    {
+      "name": "Task1_GeneralStatusReport",
+      "interval": 140
+    }
+  ],
+  "TaskConfig": {
+    "Task1_GeneralStatusReport": {
+      "CommandUUID": "",
+      "body": {
+        "msgType": "deviceControlMsg",
+        "reExecuteTimes": 0,
+        "msgDate": "",
+        "RequestType": "MultipleCommad"
+      },
+      "type": "HyteraCommand"
+    },
+    "task2_test": {
+      "CommandUUID": "",
+      "body": {
+        "msgType": "test",
+        "reExecuteTimes": 0,
+        "msgDate": "",
+        "RequestType": "test"
+      },
+      "type": "HyteraCommand"
+    }
+  },
+  "device_task_list": {
+    "00861067070143638": [
+      {
+        "task": "Task1_GeneralStatusReport",
+        "CommandUUID": "7b2b2def06974bdb83916a4ba8770bef",
+        "interval": 120,
+        "lastExecuted": 1754598355.060864,
+        "oneTime": false,
+        "consumed": false
+      }
+    ]
+  }
+}
