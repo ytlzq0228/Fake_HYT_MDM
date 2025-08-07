@@ -102,7 +102,7 @@ def aprs_password(callsign: str) -> int:
     	return None
 
 
-def aprs_report(lat_input, lon_input, device_name, issiRadioId, device_id, device_ssid=""):
+def aprs_report(lat_input, lon_input, device_name, issiRadioId, device_id, device_ssid="", ssid_icon=""):
 	try:
 		if not device_ssid:
 			CALLSIGN=get_CALLSIGN(issiRadioId)
@@ -111,7 +111,8 @@ def aprs_report(lat_input, lon_input, device_name, issiRadioId, device_id, devic
 		else:
 			CALLSIGN=device_ssid.split("-")[0]
 		APRS_PASSWORD=str(aprs_password(CALLSIGN))
-		print(f"[APRS_Service]issiRadioId:{issiRadioId},CALLSIGN:{CALLSIGN},APRS_PASSWORD:{APRS_PASSWORD}")
+		ssid_icon = ssid_icon if ssid_icon else SSID_ICON
+		print(f"[APRS_Service]issiRadioId:{issiRadioId},CALLSIGN:{CALLSIGN},APRS_PASSWORD:{APRS_PASSWORD},SSID_ICON:{ssid_icon}")
 		if not CALLSIGN:
 			print("[APRS_Service]no valid CALLSIGN")
 			return None
@@ -131,7 +132,7 @@ def aprs_report(lat_input, lon_input, device_name, issiRadioId, device_id, devic
 		lon = f"{lon_degrees:03d}{lon_minutes:05.2f}"
 
 		print(f"[APRS_Service]device_ssid:{device_ssid}")
-		frame_text=(f'{device_ssid}>PYTHON,TCPIP*,qAC,{device_ssid}:!{lat}{lat_dir}/{lon}{lon_dir}{SSID_ICON}APRS by Hytera MDM from {device_name} report').encode()
+		frame_text=(f'{device_ssid}>PYTHON,TCPIP*,qAC,{device_ssid}:!{lat}{lat_dir}/{lon}{lon_dir}{ssid_icon}APRS by Hytera MDM from {device_name} report').encode()
 		callsign = CALLSIGN.encode('utf-8')
 		password = APRS_PASSWORD.encode('utf-8')
 		
@@ -159,4 +160,4 @@ def aprs_report(lat_input, lon_input, device_name, issiRadioId, device_id, devic
 
 if __name__ == "__main__":
 	#print(aprs_password("BI1FQO"))
-	print(aprs_report("-23.56729", "-46.65940", "device_name", "4606666", "428",None))
+	print(aprs_report("-23.56729", "-46.65940", "device_name", "4606666", "428",None, ">"))

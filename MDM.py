@@ -257,11 +257,13 @@ async def uploadLocationInfo(request: Request):
         device_name = entry.get("deviceInfo", {}).get("wholeInfo", {}).get("alias", "")
         issiRadioId = entry.get("deviceInfo", {}).get("nbInfo", {}).get("issiRadioId", "")
         device_ssid = entry.get("location", {}).get("aprs_ssid")
+        ssid_icon = entry.get("location", {}).get("aprs_icon","Q")
         print(f"[APRS_Service]entry.get(location).get(aprs_ssid):{device_ssid}")
-        device_ssid=aprs_report(location_data["latitude"], location_data["longitude"], device_name, issiRadioId, device_id, device_ssid)
+        device_ssid=aprs_report(location_data["latitude"], location_data["longitude"], device_name, issiRadioId, device_id, device_ssid, ssid_icon)
         if device_ssid:
             print(f"[APRS_Service]aprs_report() return ssid {device_ssid}")
             location_data["aprs_ssid"] = device_ssid
+            location_data["aprs_icon"] = ssid_icon
         #entry.setdefault("deviceId", device_id)
         entry["location"] = location_data
         entry["update_time"]= int(time.time())
@@ -335,23 +337,6 @@ async def dashboard(request: Request, filter_device: Optional[str] = None, map: 
         "map_type": map  # 新增传递地图类型
     })
 
-#@app.get("/device", response_class=HTMLResponse)
-#async def view_device(request: Request, deviceid: str = Query(...)):
-#    entry = data_memory_cache.get_device_entry(deviceid)
-#    devicename=entry["deviceInfo"]["wholeInfo"]["alias"]
-#
-#    if not entry:
-#        return HTMLResponse(f"<h2>设备 {deviceid} 不存在</h2>", status_code=404)
-#
-#    if "sn" not in entry:
-#        return HTMLResponse(f"<h2>设备 {deviceid} 没有 SN 信息，无法验证</h2>", status_code=400)
-#
-#    return templates.TemplateResponse("device_verify.html", {
-#        "request": request,
-#        "deviceid": deviceid,
-#        "devicename": devicename,
-#        "sn": entry["sn"]
-#    })
 
 @app.get("/device", response_class=HTMLResponse)
 async def view_device(
@@ -434,11 +419,18 @@ async def change_aprs_ssid_form(request: Request, device_id: str = Query(...)):
         allowed = GLOBAL_CONFIG["sys_admin"].get(user, {}).get("devices", [])
         if "any" in allowed or device_id in allowed:
             skip_sn = True
+    now_device_ssid=""
+    if device_id:
+        entry = data_memory_cache.get_device_entry(device_id)
+        now_device_ssid = entry.get("location", {}).get("aprs_ssid","")
+        now_device_icon = entry.get("location", {}).get("aprs_icon","")
 
     return templates.TemplateResponse("change_aprs_ssid.html", {
         "request": request,
         "device_id": device_id,
-        "skip_sn": skip_sn
+        "skip_sn": skip_sn,
+        "now_device_ssid": now_device_ssid,
+        "now_device_icon": now_device_icon
     })
 
 @app.post("/change_aprs_ssid", response_class=HTMLResponse)
@@ -446,7 +438,8 @@ async def change_aprs_ssid_submit(
     request: Request,
     device_id: str = Form(...),
     sn: str = Form(""),  # 默认允许为空，便于跳过校验
-    aprs_ssid: str = Form(...)
+    aprs_ssid: str = Form(...),
+    aprs_icon: str = Form(default="Q")
 ):
     entry = data_memory_cache.get_device_entry(device_id)
     if not entry:
@@ -470,6 +463,7 @@ async def change_aprs_ssid_submit(
 
     try:
         entry["location"]["aprs_ssid"] = aprs_ssid
+        entry["location"]["aprs_icon"] = aprs_icon
         data_memory_cache.update_device_entry(device_id, entry)
         print(f"[Cache] 更新设备 {device_id}")
     except Exception as e:
