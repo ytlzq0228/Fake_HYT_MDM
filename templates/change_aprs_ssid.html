@@ -54,6 +54,14 @@
         button:hover {
             background-color: #005f99;
         }
+        .icon-preview {
+            text-align: center;
+            margin-top: 25px;
+        }
+        .icon-preview img {
+            max-width: 400px;
+            height: auto;
+        }
     </style>
 </head>
 <body>
@@ -85,11 +93,16 @@
         </div>
 
         <div class="form-note">
-            图标可使用 APRS 符号编码，如：`/I`、`\-`等，默认为Q
+            图标可使用 APRS 符号编码，如：<code>I</code>、<code>-</code>、<code>B</code> 等，区分大小写。现在没有写校验功能，看下图看准了写，写飞了APRS就报不上去了哟。默认为 <code>Q</code>
         </div>
 
         <button type="submit">提交修改</button>
     </form>
+
+    <div class="icon-preview">
+        <p>APRS 图标示例：</p>
+        <img src="/static/APRS_ICON.png" alt="APRS Icon">
+    </div>
 </div>
 
 </body>
