@@ -111,6 +111,8 @@
             margin-bottom: 15px;
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/jssha@3.2.0/dist/sha256.min.js"></script>
+
     <script>
         async function hashAndSubmitChangePassword(event) {
             event.preventDefault();
@@ -125,17 +127,14 @@
                 return;
             }
     
-            // 计算 old_password_hash 和 new_password_hash
-            const encodeHash = async (text) => {
-                const encoder = new TextEncoder();
-                const data = encoder.encode(text);
-                const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-                const hashArray = Array.from(new Uint8Array(hashBuffer));
-                return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            const sha256Hash = (text) => {
+                const shaObj = new jsSHA("SHA-256", "TEXT");
+                shaObj.update(text);
+                return shaObj.getHash("HEX");
             };
     
-            const old_password_hash = await encodeHash(oldPassword);
-            const new_password_hash = await encodeHash(newPassword);
+            const old_password_hash = sha256Hash(oldPassword);
+            const new_password_hash = sha256Hash(newPassword);
     
             const formData = new FormData();
             formData.append("username", username);
@@ -153,6 +152,7 @@
             document.close();
         }
     </script>
+
 </head>
 <body>
     <div class="container">
