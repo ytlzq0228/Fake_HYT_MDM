@@ -135,14 +135,22 @@
             {% endfor %}
           </ul>
         </details>
-        <details>
-          <summary>展开模板详情</summary>
-          {% for name, tpl in task_templates.items() %}
-            <div style="margin:10px 0;">
-              <strong>{{ name }}</strong>
-              <pre style="background:#f9fafb; padding:8px 10px; border-radius:8px; overflow:auto;">{{ tpl | tojson(indent=2) if tojson is defined else tpl }}</pre>
-            </div>
-          {% endfor %}
+        <details style="margin-top: 20px;">
+          <summary style="cursor: pointer; font-weight: bold; font-size: 16px; color: #333;">
+            展开模板详情
+          </summary>
+          <div style="margin-top: 10px;">
+            {% for name, tpl in task_templates.items() %}
+              <div style="background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <div style="font-weight: bold; color: #2c3e50; margin-bottom: 6px; font-size: 14px;">
+                  {{ name }}
+                </div>
+                <pre style="background: #f8f9fa; padding: 8px 10px; border-radius: 4px; overflow-x: auto; font-size: 13px; line-height: 1.4; border: 1px solid #e1e4e8; white-space:        pre-wrap; word-wrap: break-word;">
+        {{ tpl | tojson(indent=2) }}
+                </pre>
+              </div>
+            {% endfor %}
+          </div>
         </details>
       {% else %}
         <div class="empty">暂无任务模板</div>
