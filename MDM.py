@@ -194,7 +194,7 @@ async def chunked_getAppInfoFromAndroid(request: Request):
             entry = data_memory_cache.get_device_entry(device_id)
             entry["update_time"]= int(time.time())
             data_memory_cache.update_device_entry(device_id, entry)
-        print("Body:", body.decode())
+        #print("Body:", body.decode())
     except Exception as e:
         print(f"Logging error: {e}") 
     return chunked_response({
@@ -220,7 +220,7 @@ async def chunked_uploadContact(request: Request):
             contact_file = Path("data") / f"{device_id}_contact.json"
             contact_file.write_text(json.dumps(contacts, ensure_ascii=False, indent=2),encoding="utf-8")
 
-        print("Body:", body.decode())
+        #print("Body:", body.decode())
     except Exception as e:
         print(f"Logging error: {e}") 
     return chunked_response({
@@ -239,7 +239,7 @@ async def chunked_data_array(request: Request):
             entry = data_memory_cache.get_device_entry(device_id)
             entry["update_time"]= int(time.time())
             data_memory_cache.update_device_entry(device_id, entry)
-        print("Body:", body.decode())
+        #print("Body:", body.decode())
     except Exception as e:
         print(f"Logging error: {e}") 
     return chunked_response({
