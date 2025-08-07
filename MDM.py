@@ -23,7 +23,7 @@ from utils import data_memory_cache
 from utils.aprs_report import aprs_report
 from utils.ses_service import ses_server
 from utils.responses import fixed_json_response, chunked_response
-from utils.task_center import start_task_center, task_exists_for_device, add_device_default_tasks
+from utils.task_center import start_task_center, task_exists_for_device, add_device_default_tasks, end_task_center, load_tasks, save_tasks
 
 
 
@@ -50,6 +50,25 @@ def get_logged_in_user(request: Request):
     except (BadSignature, SignatureExpired):
         return None
 
+def get_user_device_scope(username: str):
+    """
+    返回用户可管理的设备列表：
+    - 若 devices 包含 'any'，则返回当前缓存中的所有设备 ID
+    - 否则返回 sys_conf.json 中配置的设备列表
+    """
+    try:
+        allowed_devices = GLOBAL_CONFIG.get("sys_admin", {}).get(username, {}).get("devices", [])
+        if "any" in allowed_devices:
+            device_scope=list(data_memory_cache.get_device_cache().keys())
+            device_scope.append("any")
+            return device_scope
+        else:
+            return allowed_devices
+    except Exception as e:
+        print(f"[ERROR] 读取管理员权限失败: {e}")
+        return []
+
+
 @app.on_event("startup")
 def startup_tasks():
     # 启动 SES 服务
@@ -64,6 +83,7 @@ def startup_tasks():
 @app.on_event("shutdown")
 def graceful_shutdown():
     print("[Cache] Application is shutting down, flushing cache to disk")
+    end_task_center()
     data_memory_cache.save_device_cache_once()
 
 @app.post("/nrm/androidTask/checkDeviceSn")
@@ -101,7 +121,7 @@ async def check_device_sn(request: Request):
 async def login(request: Request):
     body = await request.body()
     print("Body:", body.decode())
-    
+
     try:
         payload = json.loads(body)
         device_name = payload.get("deviceId", "").strip()
@@ -590,6 +610,131 @@ async def change_password(
         "success": True,
         "message": "密码修改成功"
     })
+
+
+@app.get("/admin/taskcenter")
+async def view_taskcenter(request: Request):
+    username = get_logged_in_user(request)
+    if not username:
+        return RedirectResponse("/admin/login")
+
+    device_scope = get_user_device_scope(username)
+    can_edit_all = "any" in device_scope
+
+    tasks = load_tasks()
+
+    # 获取有权限的设备任务列表
+    if can_edit_all:
+        visible_devices = list(tasks.get("device_task_list", {}).keys())
+    else:
+        visible_devices = [d for d in device_scope if d in tasks.get("device_task_list", {})]
+
+    device_task_list = {
+        dev: tasks["device_task_list"][dev] for dev in visible_devices
+    }
+
+    return templates.TemplateResponse("taskcenter.html", {
+        "request": request,
+        "username": username,
+        "device_task_list": device_task_list,
+        "task_templates": tasks.get("TaskConfig", {}),
+        "default_tasks": tasks.get("Default_Task", []),
+        "can_edit_default": can_edit_all
+    })
+
+
+@app.post("/admin/taskcenter/update_interval")
+async def update_interval(request: Request, device_id: str = Form(...), task_index: int = Form(...), interval: int = Form(...)):
+    username = get_logged_in_user(request)
+    if not username:
+        return RedirectResponse("/admin/login")
+
+    device_scope = get_user_device_scope(username)
+    if device_id not in device_scope and "any" not in device_scope:
+        return RedirectResponse("/admin/taskcenter")
+
+    tasks = load_tasks()
+    try:
+        tasks["device_task_list"][device_id][task_index]["interval"] = interval
+        save_tasks(tasks)
+    except Exception as e:
+        print(f"[ERROR] 更新任务间隔失败: {e}")
+
+    return RedirectResponse("/admin/taskcenter", status_code=303)
+
+
+@app.post("/admin/taskcenter/delete_task")
+async def delete_task(request: Request, device_id: str = Form(...), task_index: int = Form(...)):
+    username = get_logged_in_user(request)
+    if not username:
+        return RedirectResponse("/admin/login")
+
+    device_scope = get_user_device_scope(username)
+    if device_id not in device_scope and "any" not in device_scope:
+        return RedirectResponse("/admin/taskcenter")
+
+    tasks = load_tasks()
+    try:
+        tasks["device_task_list"][device_id].pop(task_index)
+        save_tasks(tasks)
+    except Exception as e:
+        print(f"[ERROR] 删除任务失败: {e}")
+
+    return RedirectResponse("/admin/taskcenter", status_code=303)
+
+
+@app.post("/admin/taskcenter/add_task")
+async def add_task(request: Request, device_id: str = Form(...), task_name: str = Form(...), interval: int = Form(...)):
+    username = get_logged_in_user(request)
+    if not username:
+        return RedirectResponse("/admin/login")
+
+    device_scope = get_user_device_scope(username)
+    if device_id not in device_scope and "any" not in device_scope:
+        return RedirectResponse("/admin/taskcenter")
+
+    tasks = load_tasks()
+    if task_name not in tasks.get("TaskConfig", {}):
+        print(f"[ERROR] 任务模板不存在: {task_name}")
+        return RedirectResponse("/admin/taskcenter")
+
+    tasks["device_task_list"].setdefault(device_id, []).append({
+        "task": task_name,
+        "CommandUUID": "",
+        "interval": interval,
+        "lastExecuted": 0,
+        "oneTime": False,
+        "consumed": True
+    })
+    save_tasks(tasks)
+    return RedirectResponse("/admin/taskcenter", status_code=303)
+
+
+@app.post("/admin/taskcenter/update_default")
+async def update_default_tasklist(request: Request, new_default: str = Form(...)):
+    username = get_logged_in_user(request)
+    if not username:
+        return RedirectResponse("/admin/login", status_code=303)
+
+    device_scope = get_user_device_scope(username)
+    if "any" not in device_scope:
+        return RedirectResponse("/admin/taskcenter", status_code=303)
+
+    try:
+        parsed = json.loads(new_default)
+        if not isinstance(parsed, list) or not all(
+            isinstance(item, dict) and "name" in item and "interval" in item
+            for item in parsed
+        ):
+            raise ValueError("格式不正确")
+    except Exception as e:
+        print(f"[ERROR] Default_Task 格式错误: {e}")
+        return RedirectResponse("/admin/taskcenter", status_code=303)
+
+    tasks = load_tasks()
+    tasks["Default_Task"] = parsed
+    save_tasks(tasks)
+    return RedirectResponse("/admin/taskcenter", status_code=303)
 
 
 @app.api_route("/{full_path:path}", methods=["GET", "POST", "PUT", "DELETE"])

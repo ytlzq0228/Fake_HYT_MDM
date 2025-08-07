@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>任务中心</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 0; background: #f6f7fb; color: #222; }
+    header { background: #222; color: #fff; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; }
+    header .user { opacity: .9; font-size: 14px; }
+    main { max-width: 1800px; margin: 24px auto; padding: 0 16px 60px; }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    @media (min-width: 1500px) { .grid { grid-template-columns: 2fr 1fr; } }
+
+    .card { background: #fff; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,.06); padding: 16px 18px; }
+    .card h2 { margin: 6px 0 12px; font-size: 20px; }
+    .muted { color: #666; font-size: 12px; }
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #eef2ff; color: #3949ab; font-size: 12px; margin-left: 8px; }
+
+    table { width: 100%; border-collapse: collapse; margin: 8px 0 6px; }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #eee; vertical-align: top; }
+    th { background: #fafafa; font-weight: 600; }
+
+    .row-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn { appearance: none; border: 1px solid #ddd; background: #fff; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+    .btn:hover { background: #f4f6ff; border-color: #c5cae9; }
+    .btn-primary { background: #3949ab; border-color: #3949ab; color: #fff; }
+    .btn-primary:hover { background: #303f9f; }
+    .btn-danger { background: #e53935; border-color: #e53935; color: #fff; }
+    .btn-danger:hover { background: #d32f2f; }
+
+    .form-inline { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    input[type="number"], input[type="text"], select, textarea { border: 1px solid #ddd; border-radius: 8px; padding: 6px 8px; font-size: 13px; }
+    textarea { width: 100%; min-height: 140px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .section-title { display: flex; align-items: center; gap: 8px; }
+    .pill { padding: 2px 8px; border-radius: 999px; background: #eee; font-size: 12px; color: #444; }
+    .empty { color: #888; font-style: italic; padding: 8px 0; }
+    details summary { cursor: pointer; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>任务中心<span class="tag">/admin/taskcenter</span></div>
+    <div class="user">当前用户：<strong>{{ username }}</strong></div>
+  </header>
+
+  <main class="grid">
+    <!-- 左侧：设备任务管理 -->
+    <section class="card">
+      <div class="section-title">
+        <h2>设备任务</h2>
+        <span class="pill">可管理设备数：{{ device_task_list|length }}</span>
+      </div>
+
+      {% if device_task_list %}
+        {% for device_id, tasks in device_task_list.items() %}
+          <details open>
+            <summary><strong>{{ device_id }}</strong> <span class="muted">共 {{ tasks|length }} 个任务</span></summary>
+            <div style="margin-top:8px;"></div>
+
+            {% if tasks %}
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>任务名</th>
+                    <th>间隔(s)</th>
+                    <th>最后执行</th>
+                    <th>一次性</th>
+                    <th>已消费</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                {% for t in tasks %}
+                  <tr>
+                    <td>{{ loop.index0 }}</td>
+                    <td>{{ t.task if t.task is defined else t["task"] }}</td>
+                    <td>
+                      <form class="form-inline" method="post" action="/admin/taskcenter/update_interval">
+                        <input type="hidden" name="device_id" value="{{ device_id }}" />
+                        <input type="hidden" name="task_index" value="{{ loop.index0 }}" />
+                        <input type="number" name="interval" min="1" value="{{ t.interval if t.interval is defined else t["interval"] }}" />
+                        <button class="btn btn-primary" type="submit">保存</button>
+                      </form>
+                    </td>
+                    <td>{{ t.lastExecuted if t.lastExecuted is defined else t["lastExecuted"] }}</td>
+                    <td>{{ t.oneTime if t.oneTime is defined else t["oneTime"] }}</td>
+                    <td>{{ t.consumed if t.consumed is defined else t["consumed"] }}</td>
+                    <td class="row-actions">
+                      <form method="post" action="/admin/taskcenter/delete_task" onsubmit="return confirm('确认删除该任务吗？');">
+                        <input type="hidden" name="device_id" value="{{ device_id }}" />
+                        <input type="hidden" name="task_index" value="{{ loop.index0 }}" />
+                        <button class="btn btn-danger" type="submit">删除</button>
+                      </form>
+                    </td>
+                  </tr>
+                {% endfor %}
+                </tbody>
+              </table>
+            {% else %}
+              <div class="empty">暂无任务</div>
+            {% endif %}
+
+            <!-- 添加任务 -->
+            <form class="form-inline" method="post" action="/admin/taskcenter/add_task" style="margin-top:10px;">
+              <input type="hidden" name="device_id" value="{{ device_id }}" />
+              <label>添加任务：</label>
+              <select name="task_name" required>
+                <option value="" disabled selected>选择任务模板</option>
+                {% for tpl_name, tpl in task_templates.items() %}
+                  <option value="{{ tpl_name }}">{{ tpl_name }}</option>
+                {% endfor %}
+              </select>
+              <label>间隔(s)：</label>
+              <input type="number" name="interval" min="1" value="300" required />
+              <button class="btn" type="submit">添加</button>
+            </form>
+          </details>
+        {% endfor %}
+      {% else %}
+        <div class="empty">没有可管理的设备或设备下暂无任务。</div>
+      {% endif %}
+    </section>
+
+    <!-- 右侧：任务模板与默认任务 -->
+    <aside class="card">
+      <h2>任务模板</h2>
+      {% if task_templates %}
+        <details open>
+          <summary>查看所有模板名称</summary>
+          <ul>
+            {% for name in task_templates.keys() %}
+              <li><code>{{ name }}</code></li>
+            {% endfor %}
+          </ul>
+        </details>
+        <details>
+          <summary>展开模板详情</summary>
+          {% for name, tpl in task_templates.items() %}
+            <div style="margin:10px 0;">
+              <strong>{{ name }}</strong>
+              <pre style="background:#f9fafb; padding:8px 10px; border-radius:8px; overflow:auto;">{{ tpl | tojson(indent=2) if tojson is defined else tpl }}</pre>
+            </div>
+          {% endfor %}
+        </details>
+      {% else %}
+        <div class="empty">暂无任务模板</div>
+      {% endif %}
+
+      <hr style="margin:16px 0; border:none; border-top:1px solid #eee;" />
+
+      <h2>默认任务列表</h2>
+      <div class="muted">仅拥有 any 权限的用户可编辑</div>
+      <div style="margin-top:8px;"></div>
+
+      <div>
+        <strong>当前配置：</strong>
+        {% if default_tasks %}
+          <pre style="background:#f9fafb; padding:8px 10px; border-radius:8px; overflow:auto;">{{ default_tasks | tojson(indent=2) if tojson is defined else default_tasks }}</pre>
+        {% else %}
+          <div class="empty">当前为空</div>
+        {% endif %}
+      </div>
+
+      {% if can_edit_default %}
+        <form method="post" action="/admin/taskcenter/update_default" style="margin-top:10px;">
+          <label for="new_default"><strong>编辑 Default_Task (JSON 数组)：</strong></label>
+          <textarea id="new_default" name="new_default" placeholder='例如: [ {"name": "Task1_GeneralStatusReport", "interval": 300} ]'></textarea>
+          <div style="margin-top:8px; display:flex; gap:8px;">
+            <button class="btn btn-primary" type="submit">保存默认任务</button>
+            <button class="btn" type="button" onclick="document.getElementById('new_default').value = JSON.stringify({{ default_tasks | tojson if tojson is defined else default_tasks }}, null, 2)">载入当前</button>
+          </div>
+        </form>
+      {% else %}
+        <div class="muted">你没有权限编辑默认任务。</div>
+      {% endif %}
+    </aside>
+  </main>
+</body>
+</html>
