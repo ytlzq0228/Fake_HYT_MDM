@@ -1,28 +1,87 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>更改 APRS SSID</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <title>修改 APRS SSID</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 40px;
+        }
+        .form-container {
+            background: #fff;
+            padding: 20px 30px;
+            max-width: 400px;
+            margin: auto;
+            border-radius: 8px;
+            box-shadow: 0 0 12px rgba(0,0,0,0.1);
+        }
+        .form-container h2 {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .form-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            width: 120px;
+            font-weight: bold;
+        }
+        .form-group input {
+            flex: 1;
+            padding: 6px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .form-note {
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 20px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007acc;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #005f99;
+        }
+    </style>
 </head>
 <body>
-    <div class="form-container">
-        <h2>更改设备 <span style="color: #007acc">{{ device_id }}</span> 的 APRS SSID</h2>
-<form method="post" action="/change_aprs_ssid" class="styled-form">
-    <input type="hidden" name="device_id" value="{{ device_id }}">
 
-    <div class="form-group">
-        <label for="sn">SN 验证:</label></p>
-        <input type="text" name="sn" id="sn" required>
-    </div></p>
+<div class="form-container">
+    <h2>修改 APRS SSID</h2>
+    <form method="post" action="/change_aprs_ssid">
+        <input type="hidden" name="device_id" value="{{ device_id }}">
 
-    <div class="form-group">
-        <label for="aprs_ssid">新的 APRS SSID:</label></p>
-        <input type="text" name="aprs_ssid" id="aprs_ssid" required>
-    </div></p>
-    <label for="aprs_ssid">支持1-2位SSID后缀，格式为呼号-X或者-XX。例如BI1FQO-M或-MB:</label></p>
-    <button type="submit">提交修改</button>
-</form>
-    </div>
+        {% if not skip_sn %}
+        <div class="form-group">
+            <label for="sn">SN 验证:</label>
+            <input type="text" name="sn" id="sn" required>
+        </div>
+        {% endif %}
+
+        <div class="form-group">
+            <label for="aprs_ssid">新的 SSID:</label>
+            <input type="text" name="aprs_ssid" id="aprs_ssid" required>
+        </div>
+
+        <div class="form-note">
+            支持 1–2 位 SSID 后缀，格式如：<strong>BI1FQO-M</strong> 或 <strong>-MB</strong>
+        </div>
+
+        <button type="submit">提交修改</button>
+    </form>
+</div>
+
 </body>
 </html>

@@ -427,16 +427,25 @@ async def verify_device_sn(
 
 @app.get("/change_aprs_ssid", response_class=HTMLResponse)
 async def change_aprs_ssid_form(request: Request, device_id: str = Query(...)):
+    user = get_logged_in_user(request)
+    skip_sn = False
+
+    if user:
+        allowed = GLOBAL_CONFIG["sys_admin"].get(user, {}).get("devices", [])
+        if "any" in allowed or device_id in allowed:
+            skip_sn = True
+
     return templates.TemplateResponse("change_aprs_ssid.html", {
         "request": request,
-        "device_id": device_id
+        "device_id": device_id,
+        "skip_sn": skip_sn
     })
 
 @app.post("/change_aprs_ssid", response_class=HTMLResponse)
 async def change_aprs_ssid_submit(
     request: Request,
     device_id: str = Form(...),
-    sn: str = Form(...),
+    sn: str = Form(""),  # 默认允许为空，便于跳过校验
     aprs_ssid: str = Form(...)
 ):
     entry = data_memory_cache.get_device_entry(device_id)
@@ -446,7 +455,14 @@ async def change_aprs_ssid_submit(
             <button onclick="history.back()" style="margin-top: 10px;">返回</button>
         """, status_code=404)
 
-    if sn != entry.get("sn"):
+    user = get_logged_in_user(request)
+    skip_sn = False
+    if user:
+        allowed = GLOBAL_CONFIG["sys_admin"].get(user, {}).get("devices", [])
+        if "any" in allowed or device_id in allowed:
+            skip_sn = True
+
+    if not skip_sn and sn != entry.get("sn"):
         return HTMLResponse("""
             <h3>SN 验证失败</h3>
             <button onclick="history.back()" style="margin-top: 10px;">返回</button>
@@ -462,13 +478,12 @@ async def change_aprs_ssid_submit(
             <button onclick="history.back()" style="margin-top: 10px;">返回</button>
         """, status_code=500)
 
-
     return HTMLResponse(f"""
-    <h3>APRS SSID 已更新为：{aprs_ssid}</h3>
-    <a href="/dashboard">
-        <button style="margin-top: 10px;">返回 Dashboard</button>
-    </a>
-""", status_code=200)
+        <h3>APRS SSID 已更新为：{aprs_ssid}</h3>
+        <a href="/dashboard">
+            <button style="margin-top: 10px;">返回 Dashboard</button>
+        </a>
+    """, status_code=200)
 
 @app.get("/admin/login", response_class=HTMLResponse)
 async def login_page(request: Request):
