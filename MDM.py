@@ -366,8 +366,9 @@ async def dashboard(request: Request, filter_device: Optional[str] = None, map: 
             if k == filter_device
         }
     # 如果登录了管理员
+    allowed_devices=[]
     if user and user in GLOBAL_CONFIG.get("sys_admin", {}):
-        allowed_devices = GLOBAL_CONFIG["sys_admin"][user].get("devices", [])
+        allowed_devices = GLOBAL_CONFIG["sys_admin"].get(user, {}).get("devices", []) or []
         if "any" in allowed_devices:
             allowed_devices = list(devices_all.keys())
         if map:
