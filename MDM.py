@@ -22,7 +22,7 @@ from itsdangerous import TimestampSigner, BadSignature, SignatureExpired
 from utils import data_memory_cache
 from utils.aprs_report import aprs_report
 from utils.ses_service import ses_server
-from utils.responses import fixed_json_response, chunked_response
+from utils.responses import fixed_json_response, chunked_response, chunked_response_data_null
 from utils.task_center import start_task_center, task_exists_for_device, add_device_default_tasks, end_task_center, load_tasks, save_tasks
 
 
@@ -265,14 +265,14 @@ async def chunked_data_null(request: Request):
         #print("Body:", body.decode())
     except Exception as e:
         print(f"Logging error: {e}") 
-    #return None
-    #无关上报日志太多了，考虑不返回
-    return chunked_response({
-        "code": "0",
-        "success": "true",
-        "msg": "",
-        "data": None
-    })
+    #return chunked_response({
+    #    "code": "0",
+    #    "success": "true",
+    #    "msg": "",
+    #    "data": None
+    #})
+    return chunked_response_data_null()
+
 
 @app.post("/nrm/androidTask/uploadLocationInfo")
 async def uploadLocationInfo(request: Request):
