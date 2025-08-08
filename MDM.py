@@ -265,13 +265,13 @@ async def chunked_data_null(request: Request):
         #print("Body:", body.decode())
     except Exception as e:
         print(f"Logging error: {e}") 
-    #return chunked_response({
-    #    "code": "0",
-    #    "success": "true",
-    #    "msg": "",
-    #    "data": None
-    #})
-    return chunked_response_data_null()
+    return chunked_response({
+        "code": "0",
+        "success": "true",
+        "msg": "",
+        "data": None
+    })
+    #return chunked_response_data_null()
 
 
 @app.post("/nrm/androidTask/uploadLocationInfo")

@@ -28,37 +28,12 @@ def fixed_json_response(data: dict) -> Response:
     )
 
 def chunked_response(data: dict) -> Response:
-    """
-    返回使用 Transfer-Encoding: chunked 的响应。
-    注意 chunk 长度按十六进制表示。
-    """
-    body = json.dumps(data)
-    chunked = f"{hex(len(body))[2:]}\r\n{body}\r\n0\r\n\r\n"
-    headers = {
-        "server": "nginx/1.24.0",
-        "date": current_date_header(),
-        "content-type": "application/json",
-        "transfer-encoding": "chunked",
-        "connection": "keep-alive"
-    }
-    return Response(
-        content=chunked,
-        headers=headers,
-        media_type="application/json",
-        status_code=200
-    )
 
-
-def chunked_response_data_null_1():
-    # 原始 JSON（和真实服务器完全一致）
-    data = {"code": "0", "success": "true", "msg": "", "data": None}
+    # JSON 内容（和真实服务器保持一致）
+    #data = {"code": "0", "success": "true", "msg": "", "data": None}
     body_json = json.dumps(data, separators=(",", ":"))
-    chunk_size = format(len(body_json), 'x')  # 十六进制小写
-    
-    # 拼出 chunked body
-    body = f"{chunk_size}\r\n{body_json}\r\n0\r\n\r\n"
-    
-    # 按照真实服务器设置头部
+
+    # 头部——只让框架包一层 chunk
     headers = {
         "Server": "nginx/1.24.0",
         "Date": formatdate(usegmt=True),
@@ -66,9 +41,9 @@ def chunked_response_data_null_1():
         "Transfer-Encoding": "chunked",
         "Connection": "keep-alive",
     }
-    
-    # 返回 Response（注意 content 是 bytes，FastAPI 不会自动再 chunk）
-    return Response(content=body.encode(), status_code=200, headers=headers, media_type=None)
+
+    # 直接交给 Response，不手动拼 chunk
+    return Response(content=body_json, status_code=200, headers=headers)
 
 def chunked_response_data_null():
     # JSON 内容（和真实服务器保持一致）
