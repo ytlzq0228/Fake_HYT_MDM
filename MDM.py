@@ -2,6 +2,7 @@
 import hashlib
 import json
 import os
+import re
 import secrets
 import threading
 import time
@@ -40,6 +41,16 @@ GLOBAL_mdmCertMd5=uuid.uuid4().hex
 # 启动时生成一个随机的 secret key（每次重启都会变）
 SECRET_KEY = secrets.token_hex(32)  # 64位十六进制字符串
 signer = TimestampSigner(SECRET_KEY)
+
+USERNAME_RE = re.compile(r"^[A-Za-z0-9_.-]{3,32}$")
+SHA256_HEX_RE = re.compile(r"^[0-9a-f]{64}$")
+
+def save_global_config_atomic():
+    # 原子写回，避免并发写损坏
+    GLOBAL_CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = GLOBAL_CONFIG_PATH.with_suffix(GLOBAL_CONFIG_PATH.suffix + ".tmp")
+    tmp_path.write_text(json.dumps(GLOBAL_CONFIG, ensure_ascii=False, indent=2), encoding="utf-8")
+    tmp_path.replace(GLOBAL_CONFIG_PATH)
 
 def get_logged_in_user(request: Request):
     token = request.cookies.get("admin_token")
@@ -343,6 +354,7 @@ async def dashboard(request: Request, filter_device: Optional[str] = None, map: 
     server_port = GLOBAL_CONFIG.get("http_service_port", "")
     user = get_logged_in_user(request)
 
+
     for i in devices:
         if "update_time" not in devices[i]:
             devices[i]["update_time"]=devices[i]["location"]["update_time"]
@@ -355,6 +367,9 @@ async def dashboard(request: Request, filter_device: Optional[str] = None, map: 
         }
     # 如果登录了管理员
     if user and user in GLOBAL_CONFIG.get("sys_admin", {}):
+        allowed_devices = GLOBAL_CONFIG["sys_admin"][user].get("devices", [])
+        if "any" in allowed_devices:
+            allowed_devices = list(devices_all.keys())
         if map:
             # 更新当前用户的 map_type 并写回配置
             GLOBAL_CONFIG["sys_admin"][user]["map_type"] = map
@@ -375,6 +390,7 @@ async def dashboard(request: Request, filter_device: Optional[str] = None, map: 
         "devices": devices,
         "devices_all": devices_all,
         "now": current_time,
+        "allowed_devices": allowed_devices,
         "logged_in_user": user,
         "map_type": map  # 新增传递地图类型
     })
@@ -775,6 +791,174 @@ async def update_task_templates(
     save_tasks(tasks)
 
     return RedirectResponse("/admin/taskcenter?msg=模板已更新", status_code=303)
+
+
+@app.get("/register", response_class=HTMLResponse)
+async def register_page(request: Request, device_id: Optional[str] = None, msg: Optional[str] = None):
+    return templates.TemplateResponse(
+        "register.html",
+        {"request": request, "device_id": device_id or "", "msg": msg or ""},
+    )
+
+
+@app.post("/register", response_class=HTMLResponse)
+async def register_submit(
+    request: Request,
+    device_id: str = Form(...),
+    sn: str = Form(...),
+    username: str = Form(...),
+    password_hash: str = Form(...),
+):
+    device_id = device_id.strip()
+    sn = sn.strip()
+    username = username.strip()
+    password_hash = password_hash.strip().lower()
+
+    if not USERNAME_RE.match(username):
+        return templates.TemplateResponse(
+            "register.html",
+            {"request": request, "device_id": device_id, "msg": "用户名不合法（3-32位，允许字母/数字/._-）"},
+            status_code=400
+        )
+
+    if not SHA256_HEX_RE.match(password_hash):
+        return templates.TemplateResponse(
+            "register.html",
+            {"request": request, "device_id": device_id, "msg": "密码格式错误：需要SHA-256十六进制哈希"},
+            status_code=400
+        )
+
+    # 直接用 data_memory_cache 获取设备信息
+    entry = data_memory_cache.get_device_entry(device_id)
+    if not entry:
+        return templates.TemplateResponse(
+            "register.html",
+            {"request": request, "device_id": device_id, "msg": "设备不存在"},
+            status_code=404
+        )
+
+    real_sn = entry.get("sn")
+    if sn != real_sn:
+        return templates.TemplateResponse(
+            "register.html",
+            {"request": request, "device_id": device_id, "msg": "SN 校验失败"},
+            status_code=400
+        )
+
+    # 检查用户是否存在
+    if username in GLOBAL_CONFIG.get("sys_admin", {}):
+        return templates.TemplateResponse(
+            "register.html",
+            {"request": request, "device_id": device_id, "msg": "注册失败：用户名已存在"},
+            status_code=400
+        )
+
+    # 新增用户
+    GLOBAL_CONFIG.setdefault("sys_admin", {})[username] = {
+        "password": password_hash,
+        "devices": [device_id],  # 或改为 ["any"]
+        "map_type": "openstreet"
+    }
+    save_global_config_atomic()
+
+    return RedirectResponse(url="/admin/login?ok=1", status_code=303)
+
+
+@app.get("/admin/device_register", response_class=HTMLResponse)
+async def device_register_page(
+    request: Request,
+    device_id: Optional[str] = Query(default="")
+):
+    username = get_logged_in_user(request)
+    if not username:
+        return RedirectResponse(url="/admin/login?next=/admin/device_register", status_code=303)
+
+    return templates.TemplateResponse(
+        "device_register.html",
+        {
+            "request": request,
+            "username": username,
+            "msg": "",
+            "device_id": device_id or "",
+        }
+    )
+
+@app.post("/admin/device_register", response_class=HTMLResponse)
+async def device_register_submit(
+    request: Request,
+    device_id: str = Form(...),
+    sn: str = Form(...),
+):
+    username = get_logged_in_user(request)
+    if not username:
+        return RedirectResponse(url="/admin/login?next=/admin/device_register", status_code=303)
+
+    device_id = device_id.strip()
+    sn = sn.strip()
+
+    if not device_id or not sn:
+        return templates.TemplateResponse(
+            "device_register.html",
+            {"request": request, "username": username, "msg": "设备ID与SN不能为空", "device_id": device_id},
+            status_code=400
+        )
+
+    entry = data_memory_cache.get_device_entry(device_id)
+    if not entry:
+        return templates.TemplateResponse(
+            "device_register.html",
+            {"request": request, "username": username, "msg": "设备不存在或未上报", "device_id": device_id},
+            status_code=404
+        )
+
+    real_sn = entry.get("sn")
+    if sn != real_sn:
+        return templates.TemplateResponse(
+            "device_register.html",
+            {"request": request, "username": username, "msg": "SN 校验失败", "device_id": device_id},
+            status_code=400
+        )
+
+    GLOBAL_CONFIG.setdefault("sys_admin", {})
+    user_rec = GLOBAL_CONFIG["sys_admin"].get(username)
+    if not user_rec:
+        user_rec = {"password": "", "devices": [], "map_type": "openstreet"}
+        GLOBAL_CONFIG["sys_admin"][username] = user_rec
+
+    devices = user_rec.setdefault("devices", [])
+    if device_id in devices:
+        return templates.TemplateResponse(
+            "device_register.html",
+            {"request": request, "username": username, "msg": "该设备已在你的列表中", "device_id": device_id},
+            status_code=200
+        )
+
+    devices.append(device_id)
+    save_global_config_atomic()
+    return RedirectResponse(url="/admin/taskcenter?msg=设备注册成功", status_code=303)
+
+
+@app.api_route("/{full_path:path}", methods=["GET", "POST", "PUT", "DELETE"])
+async def catch_all(request: Request, full_path: str):
+    body = await request.body()
+    print(f"[UNMATCHED] {request.method} /{full_path}")
+    print(body.decode(errors="ignore"))
+    return PlainTextResponse("Unhandled path", status_code=404)
+
+@app.post("/{unknown:path}")
+async def fallback(request: Request, unknown: str):
+    body = await request.body()
+    print(f"[UNKNOWN] {request.method} {request.url.path}?{request.url.query}")
+    try:
+        print("Body:", body.decode())
+    except:
+        print("Body: <non-decodable>")
+    return chunked_response({
+        "code": "0",
+        "success": "true",
+        "msg": "",
+        "data": []
+    })
 
 
 

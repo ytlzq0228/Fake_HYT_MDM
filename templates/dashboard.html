@@ -72,7 +72,31 @@
                     {{ entry.deviceInfo.wholeInfo.alias if entry.deviceInfo.wholeInfo and entry.deviceInfo.wholeInfo.alias else device_id }}
                 </a>
             </h2>
-            <a href="/device?deviceid={{ device_id }}" class="view-json-button" target="_blank">查看原始 JSON</a>
+            <!-- 按钮区 -->
+            <span style="display:inline-flex; gap:8px; align-items:center;">
+              <!-- 查看原始 JSON -->
+              <a href="/device?deviceid={{ device_id }}"
+                 target="_blank"
+                 style="display:inline-block; padding:4px 8px; border-radius:4px; background:#6c757d; color:#fff; text-decoration:none;">
+                 查看原始 JSON
+              </a>
+            
+              {% if not logged_in_user %}
+                <!-- 未登录：去注册账号，并预填 device_id -->
+                <a href="/register?device_id={{ device_id }}"
+                   style="display:inline-block; padding:4px 8px; border-radius:4px; background:#0f62fe; color:#fff; text-decoration:none;">
+                   以此设备注册用户
+                </a>
+              {% else %}
+                {% if device_id not in allowed_devices %}
+                  <!-- 已登录但不在自己名下：显示注册按钮 -->
+                  <a href="/admin/device_register?device_id={{ device_id }}"
+                     style="display:inline-block; padding:4px 8px; border-radius:4px; background:#198754; color:#fff; text-decoration:none;">
+                     注册此设备到我的账户
+                  </a>
+                {% endif %}
+              {% endif %}
+            </span>
             {% set last_update = now - entry.update_time %}
             <p>
                 <strong>Last Update:</strong>
