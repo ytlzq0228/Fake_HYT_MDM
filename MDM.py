@@ -738,29 +738,43 @@ async def update_default_tasklist(request: Request, new_default: str = Form(...)
     save_tasks(tasks)
     return RedirectResponse("/admin/taskcenter", status_code=303)
 
+@app.post("/admin/taskcenter/update_templates")
+async def update_task_templates(
+    request: Request,
+    new_templates: str = Form(...),
+):
+    # 登录校验
+    username = get_logged_in_user(request)
+    if not username:
+        return RedirectResponse("/admin/login", status_code=303)
 
-@app.api_route("/{full_path:path}", methods=["GET", "POST", "PUT", "DELETE"])
-async def catch_all(request: Request, full_path: str):
-    body = await request.body()
-    print(f"[UNMATCHED] {request.method} /{full_path}")
-    print(body.decode(errors="ignore"))
-    return PlainTextResponse("Unhandled path", status_code=404)
+    # 权限校验：必须具备 any 权限
+    device_scope = get_user_device_scope(username)
+    if "any" not in device_scope:
+        return RedirectResponse("/admin/taskcenter", status_code=303)
 
-@app.post("/{unknown:path}")
-async def fallback(request: Request, unknown: str):
-    body = await request.body()
-    print(f"[UNKNOWN] {request.method} {request.url.path}?{request.url.query}")
+    # 解析 JSON
     try:
-        print("Body:", body.decode())
-    except:
-        print("Body: <non-decodable>")
-    return chunked_response({
-        "code": "0",
-        "success": "true",
-        "msg": "",
-        "data": []
-    })
+        parsed = json.loads(new_templates)
+        if not isinstance(parsed, dict):
+            raise ValueError("任务模板必须是 JSON 对象")
+    except Exception as e:
+        return RedirectResponse(f"/admin/taskcenter?error=JSON解析错误:{e}", status_code=303)
 
+    # 可选：做一点轻量结构校验（不强制）
+    # for k, v in parsed.items():
+    #     if not isinstance(v, dict):
+    #         return RedirectResponse(f"/admin/taskcenter?error=模板 {k} 的值必须是对象", status_code=303)
+    #     # 例如：必须包含 type 字段
+    #     if "type" not in v:
+        #     return RedirectResponse(f"/admin/taskcenter?error=模板 {k} 缺少 type 字段", status_code=303)
+
+    # 写入内存缓存，等待后台刷盘线程落盘
+    tasks = load_tasks()
+    tasks["TaskConfig"] = parsed
+    save_tasks(tasks)
+
+    return RedirectResponse("/admin/taskcenter?msg=模板已更新", status_code=303)
 
 
 

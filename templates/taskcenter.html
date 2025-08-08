@@ -36,18 +36,8 @@
     .pill { padding: 2px 8px; border-radius: 999px; background: #eee; font-size: 12px; color: #444; }
     .empty { color: #888; font-style: italic; padding: 8px 0; }
     details summary { cursor: pointer; }
-    .btn-dashboard {
-    margin-left: 12px;
-    padding: 4px 8px;
-    background-color: #3498db;
-    color: white;
-    text-decoration: none;
-    border-radius: 4px;
-    font-size: 0.9em;
-    }
-    .btn-dashboard:hover {
-        background-color: #2980b9;
-    }
+    .btn-dashboard { margin-left: 12px; padding: 4px 8px; background-color: #3498db; color: white; text-decoration: none; border-radius: 4px; font-size: 0.9em; }
+    .btn-dashboard:hover { background-color: #2980b9; }
   </style>
 </head>
 <body>
@@ -57,7 +47,6 @@
       当前用户：<strong>{{ username }}</strong>
       <a href="/dashboard" class="btn-dashboard">返回 Dashboard</a>
     </div>
-
   </header>
 
   <main class="grid">
@@ -96,7 +85,7 @@
                       <form class="form-inline" method="post" action="/admin/taskcenter/update_interval">
                         <input type="hidden" name="device_id" value="{{ device_id }}" />
                         <input type="hidden" name="task_index" value="{{ loop.index0 }}" />
-                        <input type="number" name="interval" min="1" value="{{ t.interval if t.interval is defined else t["interval"] }}" />
+                        <input type="number" name="interval" min="1" value="{{ t.interval if t.interval is defined else t['interval'] }}" />
                         <button class="btn btn-primary" type="submit">保存</button>
                       </form>
                     </td>
@@ -114,7 +103,6 @@
                 {% endfor %}
                 </tbody>
               </table>
-
             {% else %}
               <div class="empty">暂无任务</div>
             {% endif %}
@@ -153,6 +141,7 @@
             {% endfor %}
           </ul>
         </details>
+      
         <details style="margin-top: 20px;">
           <summary style="cursor: pointer; font-weight: bold; font-size: 16px; color: #333;">
             展开模板详情
@@ -163,9 +152,7 @@
                 <div style="font-weight: bold; color: #2c3e50; margin-bottom: 6px; font-size: 14px;">
                   {{ name }}
                 </div>
-                <pre style="background: #f8f9fa; padding: 8px 10px; border-radius: 4px; overflow-x: auto; font-size: 13px; line-height: 1.4; border: 1px solid #e1e4e8; white-space:        pre-wrap; word-wrap: break-word;">
-        {{ tpl | tojson(indent=2) }}
-                </pre>
+                <pre style="background: #f8f9fa; padding: 8px 10px; border-radius: 4px; overflow-x: auto; font-size: 13px; line-height: 1.4; border: 1px solid #      e1e4e8; white-space: pre-wrap; word-wrap: break-word;">{{ tpl | tojson(indent=2) }}</pre>
               </div>
             {% endfor %}
           </div>
@@ -173,9 +160,25 @@
       {% else %}
         <div class="empty">暂无任务模板</div>
       {% endif %}
-
-      <hr style="margin:16px 0; border:none; border-top:1px solid #eee;" />
-
+      
+      {% if can_edit_default %}
+        <hr style="margin:16px 0; border:none; border-top:1px solid #eee;" />
+      
+        <form method="post" action="/admin/taskcenter/update_templates" style="margin-top:10px;">
+          <label for="new_templates"><strong>编辑 TaskConfig (JSON 对象)：</strong></label>
+          <textarea id="new_templates" name="new_templates" placeholder='例如: { "Task1_GeneralStatusReport": { "CommandUUID": "", "body": { "msgType":       "deviceControlMsg", "reExecuteTimes": 1, "msgDate": "", "RequestType": "MultipleCommad" }, "type": "HyteraCommand" } }'></textarea>
+          <div style="margin-top:8px; display:flex; gap:8px;">
+            <button class="btn btn-primary" type="submit">保存模板</button>
+            <button class="btn" type="button"
+              onclick="document.getElementById('new_templates').value = JSON.stringify({{ task_templates | tojson if tojson is defined else task_templates }}, null,      2)">
+              载入当前
+            </button>
+          </div>
+        </form>
+      {% else %}
+        <div class="muted">你没有权限编辑任务模板。</div>
+      {% endif %}
+      <hr style="margin: 20px 0; border: none; border-top: 2px solid #ccc;">
       <h2>默认任务列表</h2>
       <div class="muted">仅拥有 any 权限的用户可编辑</div>
       <div style="margin-top:8px;"></div>
