@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>账号注册</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<script src="https://cdn.jsdelivr.net/npm/jssha/dist/sha256.min.js"></script>
+<style>
+  /* 统一盒模型，避免 padding 把宽度顶歪 */
+  *, *::before, *::after { box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, system-ui, Segoe UI, Roboto, Arial;
+    background:#f6f7f9; margin:0;
+  }
+  .wrap {
+    max-width: 560px;  /* 稍微放宽些 */
+    margin: 40px auto;
+    background:#fff;
+    border-radius:16px;         /* 更圆一点也更均匀 */
+    padding:28px 24px;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.08);
+  }
+  h1 { margin: 0 0 20px; font-size: 28px; letter-spacing: .5px; }
+
+  /* 用 grid 让每一行的间距绝对统一 */
+  form { display: grid; gap: 14px; }
+
+  label { font-weight: 600; font-size: 14px; color: #111; }
+  input[type="text"],
+  input[type="password"] {
+    width: 100%;
+    height: 44px;               /* 固定高度，避免视觉跳变 */
+    padding: 10px 14px;
+    border: 1px solid #d0d7de;
+    border-radius: 10px;
+    outline: none;
+    background: #fff;
+  }
+  input[type="text"]:focus,
+  input[type="password"]:focus {
+    border-color: #0f62fe;
+    box-shadow: 0 0 0 3px rgba(15,98,254,0.15);
+  }
+
+  /* 隐藏各浏览器密码框的内置“显示/生成”按钮，避免把右侧撑歪 */
+  input[type="password"]::-ms-reveal,
+  input[type="password"]::-ms-clear { display: none; }
+  input[type="password"]::-webkit-credentials-auto-fill-button { visibility: hidden; display: none; }
+  input[type="password"]::-webkit-textfield-decoration-container { display: none; } /* Safari 一些版本 */
+  /* 给右侧多留点内边距，以防个别浏览器仍然占位 */
+  input[type="password"] { padding-right: 18px; }
+
+  button {
+    margin-top: 6px;
+    height: 42px;
+    padding: 0 16px;
+    background:#0f62fe; color:#fff;
+    border:none; border-radius:10px;
+    font-weight:600; cursor:pointer;
+  }
+  button:active { transform: translateY(1px); }
+  .msg {
+    padding:10px 12px; border-radius:10px;
+    background:#fff3cd; color:#8a6d3b; border:1px solid #ffeeba;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>注册账号</h1>
+  {% if msg %}
+    <div class="msg">{{ msg }}</div>
+  {% endif %}
+  <form id="regForm" method="post" action="/register" onsubmit="return submitForm(event)">
+    <label for="deviceid">设备ID</label>
+    <input type="text" id="deviceid" name="device_id" required value="{{ device_id }}">
+
+    <label for="sn">设备SN</label>
+    <input type="text" id="sn" name="sn" required>
+
+    <label for="username">用户名</label>
+    <input type="text" id="username" name="username" required pattern="[A-Za-z0-9_.-]{3,32}">
+
+    <label for="password">密码</label>
+    <input type="password" id="password" required autocomplete="new-password">
+
+    <label for="password2">再次输入密码</label>
+    <input type="password" id="password2" required autocomplete="new-password">
+
+    <!-- 用来提交到后端的哈希 -->
+    <input type="hidden" id="password_hash" name="password_hash">
+
+    <button type="submit">注册</button>
+  </form>
+</div>
+
+<script>
+function submitForm(event) {
+  event.preventDefault();
+
+  const pwd1El = document.getElementById('password');
+  const pwd2El = document.getElementById('password2');
+  const hashEl = document.getElementById('password_hash');
+
+  const pwd1 = pwd1El.value || "";
+  const pwd2 = pwd2El.value || "";
+
+  if (!pwd1 || !pwd2) {
+    alert("请输入密码并确认");
+    return false;
+  }
+  if (pwd1 !== pwd2) {
+    alert("两次输入的密码不一致");
+    return false;
+  }
+
+  // 用 jsSHA 计算 SHA-256 哈希（HEX）
+  const shaObj = new jsSHA("SHA-256", "TEXT", { encoding: "UTF8" });
+  shaObj.update(pwd1);
+  const pass_hash = shaObj.getHash("HEX");
+
+  // 只提交哈希
+  hashEl.value = pass_hash;
+
+  // 清空明文，防止被提交/缓存
+  pwd1El.value = "";
+  pwd2El.value = "";
+
+  document.getElementById('regForm').submit();
+}
+</script>
+</body>
+</html>
