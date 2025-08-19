@@ -102,7 +102,7 @@ def aprs_password(callsign: str) -> int:
     	return None
 
 
-def aprs_report(lat_input, lon_input, device_name, issiRadioId, device_id, device_ssid="", ssid_icon=""):
+def aprs_report(lat_input, lon_input, alt_input, device_name, issiRadioId, device_id, device_ssid="", ssid_icon=""):
 	try:
 		if not device_ssid:
 			CALLSIGN=get_CALLSIGN(issiRadioId)
@@ -130,9 +130,12 @@ def aprs_report(lat_input, lon_input, device_name, issiRadioId, device_id, devic
 		# 格式化为 APRS 格式
 		lat = f"{lat_degrees:02d}{lat_minutes:05.2f}"
 		lon = f"{lon_degrees:03d}{lon_minutes:05.2f}"
+		altitude = f"{float(alt_input) * 3.28:06.0f}"
+
 
 		print(f"[APRS_Service]device_ssid:{device_ssid}")
-		frame_text=(f'{device_ssid}>PYTHON,TCPIP*,qAC,{device_ssid}:!{lat}{lat_dir}/{lon}{lon_dir}{ssid_icon}APRS by Hytera MDM from {device_name} report').encode()
+		frame_text=(f'{device_ssid}>PYTHON,TCPIP*,qAC,{device_ssid}:!{lat}{lat_dir}/{lon}{lon_dir}{ssid_icon}/A={altitude} APRS by Hytera MDM from {device_name} report').encode()
+		#frame_text=(f'{SSID}>PYTHON,TCPIP*,qAC,{SSID}:!{lat}{lat_dir}/{lon}{lon_dir}{SSID_ICON}{course}/{speed}/A={altitude} APRS by RPI with GNSS {GNSS_Type} at UTC {NMEA_timestamp} {Message}').encode()
 		callsign = CALLSIGN.encode('utf-8')
 		password = APRS_PASSWORD.encode('utf-8')
 		
@@ -160,4 +163,4 @@ def aprs_report(lat_input, lon_input, device_name, issiRadioId, device_id, devic
 
 if __name__ == "__main__":
 	#print(aprs_password("BI1FQO"))
-	print(aprs_report("-23.56729", "-46.65940", "device_name", "4606666", "423",None, "A"))
+	print(aprs_report("-23.56729", "-46.65940","000200","device_name", "4606666", "423",None, ">"))

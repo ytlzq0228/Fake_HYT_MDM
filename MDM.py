@@ -312,7 +312,7 @@ async def uploadLocationInfo(request: Request):
         device_ssid = entry.get("location", {}).get("aprs_ssid")
         ssid_icon = entry.get("location", {}).get("aprs_icon","Q")
         print(f"[APRS_Service]entry.get(location).get(aprs_ssid):{device_ssid}")
-        device_ssid=aprs_report(location_data["latitude"], location_data["longitude"], device_name, issiRadioId, device_id, device_ssid, ssid_icon)
+        device_ssid=aprs_report(location_data["latitude"], location_data["longitude"], location_data["altitude"], device_name, issiRadioId, device_id, device_ssid, ssid_icon)
         if device_ssid:
             print(f"[APRS_Service]aprs_report() return ssid {device_ssid}")
             location_data["aprs_ssid"] = device_ssid
