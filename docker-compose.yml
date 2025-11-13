@@ -1,0 +1,8 @@
+services:
+  mdm:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mdm
+    ports:
+      - "2232:2232"
