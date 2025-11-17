@@ -10,4 +10,6 @@ COPY . .
 
 EXPOSE 2232
 
+EXPOSE 2233
+
 CMD ["python", "MDM.py"]

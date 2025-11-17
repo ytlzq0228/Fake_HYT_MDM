@@ -6,3 +6,9 @@ services:
     container_name: mdm
     ports:
       - "2232:2232"
+      - "2233:2233"
+    environment:
+      - HTTP_SERVICE_PORT=2232
+      - TCP_SERVICE_PORT=2233
+      - SERVER_IP=mdm.ctsdn.com
+      - ADMIN_PASSWORD=ctsdn
