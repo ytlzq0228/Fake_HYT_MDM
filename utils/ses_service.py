@@ -6,7 +6,7 @@ import json
 import uuid
 from datetime import datetime
 from utils.task_center import load_tasks, save_tasks
-from MDM import GLOBAL_CONFIG  # 导入全局配置
+from utils.config import GLOBAL_CONFIG
 
 HOST = '0.0.0.0'
 PORT = int(GLOBAL_CONFIG["tcp_service_port"])  # 从配置读取端口

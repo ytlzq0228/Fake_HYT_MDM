@@ -25,81 +25,9 @@ from utils.aprs_report import aprs_report
 from utils.ses_service import ses_server
 from utils.responses import fixed_json_response, chunked_response, chunked_response_data_null
 from utils.task_center import start_task_center, task_exists_for_device, add_device_default_tasks, end_task_center, load_tasks, save_tasks
-
-
+from utils.config import GLOBAL_CONFIG
 
 app = FastAPI()
-GLOBAL_CONFIG_PATH = Path("data/sys_conf.json")
-
-# 1. 定义默认配置（最低优先级）
-DEFAULT_CONFIG = {
-    "http_service_port": "2232",
-    "tcp_service_port": "2233",
-    "server_ip": "mdm.ctsdn.com",
-    "sys_admin": {
-        "admin": {
-            "password": "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918",  # 默认哈希
-            "devices": ["any", "00861067070143638"],
-            "map_type": "openstreet"
-        }
-    }
-}
-
-# 2. 加载配置文件（中间优先级）
-def load_config_file():
-    if GLOBAL_CONFIG_PATH.exists():
-        try:
-            with open(GLOBAL_CONFIG_PATH, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception as e:
-            print(f"[WARNING] 配置文件加载失败，使用默认配置: {e}")
-    return {}
-
-# 3. 读取环境变量并转换（最高优先级）
-def get_env_config():
-    env_config = {}
-    # 端口和IP配置
-    if os.getenv("HTTP_SERVICE_PORT"):
-        env_config["http_service_port"] = os.getenv("HTTP_SERVICE_PORT")
-    if os.getenv("TCP_SERVICE_PORT"):
-        env_config["tcp_service_port"] = os.getenv("TCP_SERVICE_PORT")
-    if os.getenv("SERVER_IP"):
-        env_config["server_ip"] = os.getenv("SERVER_IP")
-
-    # 管理员配置
-    if os.getenv("ADMIN_PASSWORD"):
-        # 环境变量传入明文密码时自动转为SHA-256哈希
-        hashed_pwd = hashlib.sha256(os.getenv("ADMIN_PASSWORD").encode()).hexdigest()
-        env_config["sys_admin"] = {"admin": {"password": hashed_pwd}}
-    if os.getenv("ALLOWED_DEVICES"):
-        # 环境变量用逗号分隔设备列表，转为数组
-        devices = os.getenv("ALLOWED_DEVICES").split(",")
-        env_config.setdefault("sys_admin", {"admin": {}})["admin"]["devices"] = devices
-    if os.getenv("DEFAULT_MAP_TYPE"):
-        env_config.setdefault("sys_admin", {"admin": {}})["admin"]["map_type"] = os.getenv("DEFAULT_MAP_TYPE")
-
-    return env_config
-
-# 4. 合并配置（优先级：环境变量 > 配置文件 > 默认值）
-def merge_configs(env_conf, file_conf, default_conf):
-    # 递归合并字典（处理嵌套结构）
-    def deep_merge(target, source):
-        for key, value in source.items():
-            if isinstance(value, dict) and key in target and isinstance(target[key], dict):
-                deep_merge(target[key], value)
-            else:
-                target[key] = value
-        return target
-
-    # 先合并默认配置和文件配置，再用环境变量覆盖
-    merged = deep_merge(default_conf.copy(), file_conf)
-    merged = deep_merge(merged, env_conf)
-    return merged
-
-# 加载最终配置
-file_config = load_config_file()
-env_config = get_env_config()
-GLOBAL_CONFIG = merge_configs(env_config, file_config, DEFAULT_CONFIG)
 
 RESPONSE_PATH = Path("static/response.json")
 app.mount("/static", StaticFiles(directory="static"), name="static")
