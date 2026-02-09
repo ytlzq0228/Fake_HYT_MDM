@@ -398,11 +398,7 @@ async def dashboard(request: Request, filter_device: Optional[str] = None, map: 
 
 
 @app.get("/device", response_class=HTMLResponse)
-async def view_device(
-    request: Request,
-    deviceid: str = Query(...),
-    admin_token: str = Cookie(None)
-):
+async def view_device(request: Request,deviceid: str = Query(...),admin_token: str = Cookie(None)):
     entry = data_memory_cache.get_device_entry(deviceid)
     if not entry:
         return HTMLResponse(f"<h2>设备 {deviceid} 不存在</h2>", status_code=404)
@@ -440,13 +436,8 @@ async def view_device(
     })
 
 
-
 @app.get("/device/deviceinfo", response_class=HTMLResponse)
-async def verify_device_sn(
-    deviceid: str = Query(...),
-    timestamp: int = Query(...),
-    sn_hash: str = Query(...)
-):
+async def verify_device_sn(deviceid: str = Query(...),timestamp: int = Query(...),sn_hash: str = Query(...)):
     entry = data_memory_cache.get_device_entry(deviceid)
     if not entry:
         return HTMLResponse("<h3>设备不存在</h3>", status_code=404)
@@ -493,13 +484,7 @@ async def change_aprs_ssid_form(request: Request, device_id: str = Query(...)):
     })
 
 @app.post("/change_aprs_ssid", response_class=HTMLResponse)
-async def change_aprs_ssid_submit(
-    request: Request,
-    device_id: str = Form(...),
-    sn: str = Form(""),  # 默认允许为空，便于跳过校验
-    aprs_ssid: str = Form(...),
-    aprs_icon: str = Form(default="Q")
-):
+async def change_aprs_ssid_submit(request: Request,device_id: str = Form(...),sn: str = Form(""),aprs_ssid: str = Form(...),aprs_icon: str = Form(default="Q")):
     entry = data_memory_cache.get_device_entry(device_id)
     if not entry:
         return HTMLResponse("""
