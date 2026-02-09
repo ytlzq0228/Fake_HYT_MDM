@@ -25,12 +25,9 @@ from utils.aprs_report import aprs_report
 from utils.ses_service import ses_server
 from utils.responses import fixed_json_response, chunked_response, chunked_response_data_null
 from utils.task_center import start_task_center, task_exists_for_device, add_device_default_tasks, end_task_center, load_tasks, save_tasks
-
-
+from utils.config import GLOBAL_CONFIG
 
 app = FastAPI()
-GLOBAL_CONFIG_PATH = Path("data/sys_conf.json")
-GLOBAL_CONFIG=json.loads(Path(GLOBAL_CONFIG_PATH).read_text(encoding="utf-8"))
 
 RESPONSE_PATH = Path("static/response.json")
 app.mount("/static", StaticFiles(directory="static"), name="static")
